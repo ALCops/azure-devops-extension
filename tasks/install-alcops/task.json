@@ -1,0 +1,103 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "22bcba49-43e5-46f4-986d-239c7524eb5b",
+    "name": "InstallALCopsAnalyzers",
+    "friendlyName": "Install ALCops Analyzers",
+    "description": "Download and install ALCops code analyzers for AL (Business Central) with automatic or manual TFM selection",
+    "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
+    "category": "Build",
+    "author": "ALCops",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Install ALCops Analyzers $(version)",
+    "inputs": [
+        {
+            "name": "version",
+            "type": "string",
+            "label": "ALCops Version",
+            "defaultValue": "latest",
+            "required": false,
+            "helpMarkDown": "Version to install: `latest`, `prerelease`, or a specific version (e.g., `1.2.3`)"
+        },
+        {
+            "name": "packageSource",
+            "type": "pickList",
+            "label": "Package Source",
+            "defaultValue": "nuget",
+            "required": false,
+            "options": {
+                "nuget": "NuGet (nuget.org)",
+                "local": "Local .nupkg file"
+            },
+            "helpMarkDown": "Where to download the ALCops package from"
+        },
+        {
+            "name": "localPackagePath",
+            "type": "filePath",
+            "label": "Local Package Path",
+            "defaultValue": "",
+            "required": false,
+            "visibleRule": "packageSource = local",
+            "helpMarkDown": "Path to a local `.nupkg` file (for air-gapped environments)"
+        },
+        {
+            "name": "tfm",
+            "type": "pickList",
+            "label": "Target Framework",
+            "defaultValue": "",
+            "required": false,
+            "options": {
+                "": "(auto-detect from compilerPath if provided)",
+                "netstandard2.1": "netstandard2.1 (AL Language ≤ v15.x)",
+                "net8.0": "net8.0 (AL Language v16.0+)",
+                "net10.0": "net10.0 (future AL versions)"
+            },
+            "helpMarkDown": "The .NET target framework. Leave empty + provide `compilerPath` for auto-detection, or set explicitly."
+        },
+        {
+            "name": "compilerPath",
+            "type": "filePath",
+            "label": "AL Compiler Path",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Path to the directory containing `Microsoft.Dynamics.Nav.CodeAnalysis.dll`. Used for auto-detection when `tfm` is not set."
+        },
+        {
+            "name": "outputPath",
+            "type": "filePath",
+            "label": "Output Path",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Where to place extracted analyzer DLLs. Defaults to `$(Build.SourcesDirectory)/.alcops`"
+        }
+    ],
+    "outputVariables": [
+        {
+            "name": "alcopsVersion",
+            "description": "The installed ALCops analyzer version"
+        },
+        {
+            "name": "tfm",
+            "description": "The detected or specified target framework moniker"
+        },
+        {
+            "name": "analyzerPath",
+            "description": "Full path to the directory containing the extracted analyzer DLLs"
+        },
+        {
+            "name": "analyzers",
+            "description": "Semicolon-separated list of analyzer DLL paths"
+        }
+    ],
+    "execution": {
+        "Node24_1": {
+            "target": "dist/index.js"
+        },
+        "Node20_1": {
+            "target": "dist/index.js"
+        }
+    }
+}

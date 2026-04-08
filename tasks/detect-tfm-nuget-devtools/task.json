@@ -1,0 +1,44 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "4d71228c-8416-44fd-9029-811b6ae7bf11",
+    "name": "DetectTfmFromNuGetDevTools",
+    "friendlyName": "Detect TFM from NuGet DevTools",
+    "description": "Detect the target framework moniker from the Microsoft.Dynamics.BusinessCentral.Development.Tools NuGet package version",
+    "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
+    "category": "Utility",
+    "author": "ALCops",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Detect TFM from NuGet DevTools",
+    "inputs": [
+        {
+            "name": "version",
+            "type": "string",
+            "label": "DevTools Version",
+            "defaultValue": "latest",
+            "required": false,
+            "helpMarkDown": "Version of `Microsoft.Dynamics.BusinessCentral.Development.Tools`: `latest`, `prerelease`, or a specific version (e.g., `26.0.12345.0`)"
+        }
+    ],
+    "outputVariables": [
+        {
+            "name": "tfm",
+            "description": "The detected target framework moniker (e.g., net8.0, netstandard2.1)"
+        },
+        {
+            "name": "devToolsVersion",
+            "description": "The resolved DevTools package version"
+        }
+    ],
+    "execution": {
+        "Node24_1": {
+            "target": "dist/index.js"
+        },
+        "Node20_1": {
+            "target": "dist/index.js"
+        }
+    }
+}

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output — TypeScript compiler
+dist-tsc/
+
+# Build output — esbuild task bundles
+tasks/*/dist/
+
+# Extension packaging output (tfx-cli)
+out/
+*.vsix
+
+# Test coverage
+coverage/
+
+# Debug logs
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Editor swap/backup files
+*.swp
+*.swo
+*~

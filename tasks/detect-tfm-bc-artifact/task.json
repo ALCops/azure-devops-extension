@@ -1,0 +1,44 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "6d877951-7f8c-4952-b646-8b1de43438a3",
+    "name": "DetectTfmFromBCArtifact",
+    "friendlyName": "Detect TFM from BC Artifact",
+    "description": "Detect the target framework moniker from a Business Central artifact URL by reading its manifest",
+    "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
+    "category": "Utility",
+    "author": "ALCops",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Detect TFM from BC Artifact",
+    "inputs": [
+        {
+            "name": "artifactUrl",
+            "type": "string",
+            "label": "BC Artifact URL",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Business Central artifact URL (e.g., from `Get-BCArtifactUrl`)"
+        }
+    ],
+    "outputVariables": [
+        {
+            "name": "tfm",
+            "description": "The detected target framework moniker (e.g., net8.0, netstandard2.1)"
+        },
+        {
+            "name": "dotNetVersion",
+            "description": "The .NET version string from the artifact manifest (e.g., 8.0.24)"
+        }
+    ],
+    "execution": {
+        "Node24_1": {
+            "target": "dist/index.js"
+        },
+        "Node20_1": {
+            "target": "dist/index.js"
+        }
+    }
+}

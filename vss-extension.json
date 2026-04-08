@@ -1,0 +1,76 @@
+{
+    "manifestVersion": 1,
+    "id": "alcops-ado",
+    "publisher": "Arthurvdv",
+    "name": "ALCops for Azure DevOps",
+    "version": "1.0.0",
+    "description": "Download and install ALCops code analyzers for AL (Business Central) pipelines",
+    "categories": ["Azure Pipelines"],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "icons": {
+        "default": "images/icon.png"
+    },
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
+    "links": {
+        "home": {
+            "uri": "https://alcops.dev"
+        },
+        "repository": {
+            "uri": "https://github.com/ALCops/azure-devops-extension"
+        },
+        "issues": {
+            "uri": "https://github.com/ALCops/azure-devops-extension/issues"
+        }
+    },
+    "repository": {
+        "type": "git",
+        "uri": "https://github.com/ALCops/azure-devops-extension"
+    },
+    "tags": [
+        "AL",
+        "Business Central",
+        "Dynamics 365",
+        "Code Analysis",
+        "ALCops"
+    ],
+    "files": [
+        { "path": "tasks/install-alcops" },
+        { "path": "tasks/detect-tfm-bc-artifact" },
+        { "path": "tasks/detect-tfm-nuget-devtools" },
+        { "path": "tasks/detect-tfm-marketplace" }
+    ],
+    "contributions": [
+        {
+            "id": "install-alcops",
+            "type": "ms.vss-distributed-task.task",
+            "targets": ["ms.vss-distributed-task.tasks"],
+            "properties": { "name": "tasks/install-alcops" }
+        },
+        {
+            "id": "detect-tfm-bc-artifact",
+            "type": "ms.vss-distributed-task.task",
+            "targets": ["ms.vss-distributed-task.tasks"],
+            "properties": { "name": "tasks/detect-tfm-bc-artifact" }
+        },
+        {
+            "id": "detect-tfm-nuget-devtools",
+            "type": "ms.vss-distributed-task.task",
+            "targets": ["ms.vss-distributed-task.tasks"],
+            "properties": { "name": "tasks/detect-tfm-nuget-devtools" }
+        },
+        {
+            "id": "detect-tfm-marketplace",
+            "type": "ms.vss-distributed-task.task",
+            "targets": ["ms.vss-distributed-task.tasks"],
+            "properties": { "name": "tasks/detect-tfm-marketplace" }
+        }
+    ]
+}

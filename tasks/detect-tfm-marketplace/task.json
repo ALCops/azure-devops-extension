@@ -1,0 +1,60 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "fdd8b141-8aa3-40fd-a235-341eafc63b2f",
+    "name": "DetectTfmFromMarketplace",
+    "friendlyName": "Detect TFM from VS Marketplace",
+    "description": "Detect the target framework moniker from the AL Language VS Code extension on the Visual Studio Marketplace",
+    "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
+    "category": "Utility",
+    "author": "ALCops",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Detect TFM from VS Marketplace",
+    "inputs": [
+        {
+            "name": "channel",
+            "type": "pickList",
+            "label": "Extension Channel",
+            "defaultValue": "current",
+            "required": false,
+            "options": {
+                "current": "Current (latest stable)",
+                "prerelease": "Pre-release"
+            },
+            "helpMarkDown": "Which channel of the AL Language extension to check"
+        },
+        {
+            "name": "extensionVersion",
+            "type": "string",
+            "label": "Specific Extension Version",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Pin to a specific AL Language extension version (e.g., `15.0.12345.0`). Overrides channel."
+        }
+    ],
+    "outputVariables": [
+        {
+            "name": "tfm",
+            "description": "The detected target framework moniker (e.g., net8.0, netstandard2.1)"
+        },
+        {
+            "name": "extensionVersion",
+            "description": "The resolved AL Language extension version"
+        },
+        {
+            "name": "assemblyVersion",
+            "description": "The assembly version of the CodeAnalysis DLL"
+        }
+    ],
+    "execution": {
+        "Node24_1": {
+            "target": "dist/index.js"
+        },
+        "Node20_1": {
+            "target": "dist/index.js"
+        }
+    }
+}

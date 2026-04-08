@@ -1,0 +1,73 @@
+name: "Release: Azure DevOps Extension"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v4.4.2
+        with:
+          versionSpec: "6.x"
+
+      - name: Determine version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.4.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Bundle
+        run: npm run bundle
+
+      - name: Stamp task versions
+        run: |
+          for f in tasks/*/task.json; do
+            jq --indent 4 \
+              '.version.Minor = ${{ steps.gitversion.outputs.minor }} | .version.Patch = ${{ steps.gitversion.outputs.patch }}' \
+              "$f" > tmp.$$ && mv tmp.$$ "$f"
+          done
+
+      - name: Package extension
+        run: |
+          npx tfx extension create \
+            --manifest-globs vss-extension.json \
+            --override "{\"version\": \"${{ steps.gitversion.outputs.majorMinorPatch }}\"}" \
+            --output-path ./out
+
+      - name: Publish to Azure DevOps Marketplace
+        run: |
+          npx tfx extension publish \
+            --manifest-globs vss-extension.json \
+            --override "{\"version\": \"${{ steps.gitversion.outputs.majorMinorPatch }}\"}" \
+            --token ${{ secrets.VISUAL_STUDIO_MARKETPLACE_PAT }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: out/*.vsix
+
+      - name: Summary
+        run: |
+          echo "### 🎉 Production Extension Released" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ steps.gitversion.outputs.majorMinorPatch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Extension:** alcops-ado" >> $GITHUB_STEP_SUMMARY
+          echo "- **SemVer:** ${{ steps.gitversion.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY

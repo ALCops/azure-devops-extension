@@ -1,0 +1,49 @@
+{
+  "name": "alcops-azure-devops-extension",
+  "displayName": "ALCops for Azure DevOps",
+  "description": "Azure DevOps pipeline tasks to download and install ALCops code analyzers for AL (Business Central)",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "ALCops",
+    "url": "https://alcops.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ALCops/Analyzers"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "bundle": "node esbuild.config.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint shared/ tasks/*/src/",
+    "clean": "node -e \"require('fs').rmSync('tasks',{recursive:true,force:true})\"",
+    "package": "npm run bundle && npx tfx extension create --manifest-globs vss-extension.json --output-path ./out",
+    "package:dev": "npm run bundle && npx tfx extension create --manifest-globs vss-extension.dev.json --output-path ./out",
+    "publish": "npm run bundle && npx tfx extension publish --manifest-globs vss-extension.json",
+    "publish:dev": "npm run bundle && npx tfx extension publish --manifest-globs vss-extension.dev.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.x",
+    "@types/semver": "^7.7.1",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.42.0",
+    "esbuild": "^0.27.3",
+    "eslint": "^10.0.2",
+    "tfx-cli": "^0.17.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.1"
+  },
+  "dependencies": {
+    "@rollup/rollup-darwin-x64": "^4.60.1",
+    "azure-pipelines-task-lib": "^5.2.8",
+    "fflate": "^0.8.2",
+    "pe-struct": "^0.9.4",
+    "semver": "^7.7.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
