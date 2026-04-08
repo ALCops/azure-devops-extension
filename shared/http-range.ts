@@ -85,7 +85,6 @@ export function parseZipCentralDirectory(buffer: Buffer): ZipCentralEntry[] {
         const commentLength = buffer.readUInt16LE(offset + 32);
         const localHeaderOffset = buffer.readUInt32LE(offset + 42);
 
-        const entryEnd = offset + 46 + fileNameLength + extraFieldLength + commentLength;
         if (offset + 46 + fileNameLength > buffer.length) {
             break;
         }

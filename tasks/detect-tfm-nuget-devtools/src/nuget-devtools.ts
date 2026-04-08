@@ -32,7 +32,7 @@ function fetchJson(url: string, maxRedirects = 5): Promise<Record<string, unknow
             res.on('end', () => {
                 try {
                     resolve(JSON.parse(Buffer.concat(chunks).toString('utf-8')));
-                } catch (err) {
+                } catch {
                     reject(new Error(`Invalid JSON from ${url}`));
                 }
             });

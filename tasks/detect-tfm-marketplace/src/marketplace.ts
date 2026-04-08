@@ -130,7 +130,7 @@ function postJson(url: string, body: string): Promise<Record<string, unknown>> {
                     try {
                         const text = Buffer.concat(chunks).toString('utf-8');
                         resolve(JSON.parse(text));
-                    } catch (e) {
+                    } catch {
                         reject(new Error('Failed to parse VS Marketplace API response'));
                     }
                 });
