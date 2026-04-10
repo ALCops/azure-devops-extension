@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -64,7 +64,7 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@v4.4.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
 
