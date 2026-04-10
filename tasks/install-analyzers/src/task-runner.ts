@@ -2,13 +2,17 @@ import * as tl from 'azure-pipelines-task-lib/task';
 import * as path from 'path';
 import { TargetFramework } from '../../../shared/types';
 import { createTaskLogger } from '../../../shared/logger';
+import { logTaskInputs } from '../../../shared/log-inputs';
 import { resolveVersion, downloadPackage } from './nuget-api';
 import { extractAnalyzers } from './nuget-extractor';
 import { detectFromCompilerPath } from './compiler-path';
+import taskJson from '../task.json';
 
 export async function run(): Promise<void> {
     // 1. Read inputs
     const logger = createTaskLogger();
+    logTaskInputs(logger, taskJson.inputs);
+
     const version = tl.getInput('version') || 'latest';
     const packageSource = tl.getInput('packageSource') || 'nuget';
     const localPackagePath = tl.getPathInput('localPackagePath');
@@ -18,7 +22,6 @@ export async function run(): Promise<void> {
         path.join(tl.getVariable('Build.SourcesDirectory') || '.', '.alcops');
 
     logger.info('Installing ALCops Analyzers...');
-    logger.debug(`Inputs: version=${version}, packageSource=${packageSource}, tfm=${tfmInput || '(auto)'}, compilerPath=${compilerPath || '(none)'}`);
 
     // 2. Determine TFM
     let tfm: TargetFramework;

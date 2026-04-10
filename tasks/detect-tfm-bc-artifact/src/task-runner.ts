@@ -1,13 +1,16 @@
 import * as tl from 'azure-pipelines-task-lib/task';
 import { detectFromBCArtifact } from './bc-artifact';
 import { createTaskLogger } from '../../../shared/logger';
+import { logTaskInputs } from '../../../shared/log-inputs';
+import taskJson from '../task.json';
 
 export async function run(): Promise<void> {
     try {
         const logger = createTaskLogger();
+        logTaskInputs(logger, taskJson.inputs);
+
         const artifactUrl = tl.getInput('artifactUrl', true)!;
         logger.info('Detecting TFM from BC artifact...');
-        logger.debug(`Artifact URL: ${artifactUrl}`);
 
         const result = await detectFromBCArtifact(artifactUrl, logger);
 
