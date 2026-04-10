@@ -55,7 +55,7 @@ export async function extractAnalyzers(
     }
     logger.debug(`Available TFM folders: ${[...new Set(libEntries.map((e) => e.split('/')[1]))].join(', ')}`);
 
-    const extractedPath = path.join(outputDir, 'analyzers', actualTfm);
+    const extractedPath = outputDir;
     if (!fs.existsSync(extractedPath)) {
         fs.mkdirSync(extractedPath, { recursive: true });
     }

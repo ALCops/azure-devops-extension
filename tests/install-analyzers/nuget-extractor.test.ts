@@ -101,7 +101,7 @@ describe('extractAnalyzers', () => {
         expect(result.files).toHaveLength(3);
         const basenames = result.files.map((f) => path.basename(f)).sort();
         expect(basenames).toEqual(['A.dll', 'B.dll', 'C.dll']);
-        expect(result.extractedPath).toContain('netstandard2.1');
+        expect(result.extractedPath).toBe(outputDir);
     });
 
     it('ignores non-DLL files in lib folder', async () => {

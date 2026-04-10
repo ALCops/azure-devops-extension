@@ -76,8 +76,8 @@ describe('task-runner', () => {
         mockResolveVersion.mockResolvedValue('1.0.0');
         mockDownloadPackage.mockResolvedValue('/tmp/package.nupkg');
         mockExtractAnalyzers.mockResolvedValue({
-            extractedPath: '/output/analyzers/net8.0',
-            files: ['/output/analyzers/net8.0/Analyzer.dll'],
+            extractedPath: '/build/src/.alcops',
+            files: ['/build/src/.alcops/Analyzer.dll'],
             actualTfm: 'net8.0',
         });
 
@@ -112,8 +112,8 @@ describe('task-runner', () => {
         mockResolveVersion.mockResolvedValue('2.0.0');
         mockDownloadPackage.mockResolvedValue('/tmp/package.nupkg');
         mockExtractAnalyzers.mockResolvedValue({
-            extractedPath: '/output/analyzers/netstandard2.1',
-            files: ['/output/analyzers/netstandard2.1/A.dll', '/output/analyzers/netstandard2.1/B.dll'],
+            extractedPath: '/build/src/.alcops',
+            files: ['/build/src/.alcops/A.dll', '/build/src/.alcops/B.dll'],
             actualTfm: 'netstandard2.1',
         });
 
@@ -143,8 +143,8 @@ describe('task-runner', () => {
         });
 
         mockExtractAnalyzers.mockResolvedValue({
-            extractedPath: '/output/analyzers/net8.0',
-            files: ['/output/analyzers/net8.0/Local.dll'],
+            extractedPath: '/build/src/.alcops',
+            files: ['/build/src/.alcops/Local.dll'],
             actualTfm: 'net8.0',
         });
 
