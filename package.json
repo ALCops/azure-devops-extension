@@ -26,7 +26,7 @@
     "publish:dev": "npm run bundle && npx tfx extension publish --manifest-globs vss-extension.dev.json"
   },
   "devDependencies": {
-    "@types/node": "^24.x",
+    "@types/node": "^25.x",
     "@types/semver": "^7.7.1",
     "esbuild": "^0.28.0",
     "eslint": "^10.2.0",
