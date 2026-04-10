@@ -5,7 +5,7 @@ import * as os from 'os';
 import { zipSync } from 'fflate';
 import type { TargetFramework } from '@shared/types';
 
-import { extractAnalyzers } from '../../tasks/install-alcops/src/nuget-extractor';
+import { extractAnalyzers } from '../../tasks/install-analyzers/src/nuget-extractor';
 
 let tmpDir: string;
 

@@ -1,8 +1,8 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
     "id": "fdd8b141-8aa3-40fd-a235-341eafc63b2f",
-    "name": "DetectTfmFromMarketplace",
-    "friendlyName": "Detect TFM from VS Marketplace",
+    "name": "ALCopsDetectTfmFromMarketplace",
+    "friendlyName": "ALCops Detect TFM from VS Marketplace",
     "description": "Detect the target framework moniker from the AL Language VS Code extension on the Visual Studio Marketplace",
     "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
     "category": "Utility",
@@ -12,7 +12,7 @@
         "Minor": 0,
         "Patch": 0
     },
-    "instanceNameFormat": "Detect TFM from VS Marketplace",
+    "instanceNameFormat": "ALCops Detect TFM from VS Marketplace",
     "inputs": [
         {
             "name": "channel",

@@ -46,17 +46,17 @@
         "Preview"
     ],
     "files": [
-        { "path": "tasks/install-alcops" },
+        { "path": "tasks/install-analyzers" },
         { "path": "tasks/detect-tfm-bc-artifact" },
         { "path": "tasks/detect-tfm-nuget-devtools" },
         { "path": "tasks/detect-tfm-marketplace" }
     ],
     "contributions": [
         {
-            "id": "install-alcops",
+            "id": "install-analyzers",
             "type": "ms.vss-distributed-task.task",
             "targets": ["ms.vss-distributed-task.tasks"],
-            "properties": { "name": "tasks/install-alcops" }
+            "properties": { "name": "tasks/install-analyzers" }
         },
         {
             "id": "detect-tfm-bc-artifact",

@@ -13,16 +13,16 @@ Install [ALCops](https://alcops.dev) code analyzers for AL (Business Central) in
 
 | Task | Description |
 |------|-------------|
-| **InstallALCopsAnalyzers** | Download and install ALCops analyzer DLLs |
-| **DetectTfmFromBCArtifact** | Detect TFM from a BC artifact URL |
-| **DetectTfmFromNuGetDevTools** | Detect TFM from BC DevTools NuGet package |
-| **DetectTfmFromMarketplace** | Detect TFM from the AL Language VS Code extension |
+| **ALCopsInstallAnalyzers** | Download and install ALCops analyzer DLLs |
+| **ALCopsDetectTfmFromBCArtifact** | Detect TFM from a BC artifact URL |
+| **ALCopsDetectTfmFromNuGetDevTools** | Detect TFM from BC DevTools NuGet package |
+| **ALCopsDetectTfmFromMarketplace** | Detect TFM from the AL Language VS Code extension |
 
 ## Quick Start
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "net8.0"
 ```
@@ -33,12 +33,12 @@ steps:
 
 ```yaml
 steps:
-  - task: DetectTfmFromBCArtifact@0
+  - task: ALCopsDetectTfmFromBCArtifact@0
     name: detectTfm
     inputs:
       artifactUrl: "$(bcArtifactUrl)"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```
@@ -47,12 +47,12 @@ steps:
 
 ```yaml
 steps:
-  - task: DetectTfmFromNuGetDevTools@0
+  - task: ALCopsDetectTfmFromNuGetDevTools@0
     name: detectTfm
     inputs:
       version: "latest"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```
@@ -61,12 +61,12 @@ steps:
 
 ```yaml
 steps:
-  - task: DetectTfmFromMarketplace@0
+  - task: ALCopsDetectTfmFromMarketplace@0
     name: detectTfm
     inputs:
       channel: "current"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```

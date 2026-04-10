@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild';
 const isProduction = process.argv.includes('--production');
 
 const tasks = [
-    'install-alcops',
+    'install-analyzers',
     'detect-tfm-bc-artifact',
     'detect-tfm-nuget-devtools',
     'detect-tfm-marketplace',

@@ -6,10 +6,10 @@ Azure DevOps pipeline tasks for downloading and installing [ALCops](https://alco
 
 | Task | Description |
 |------|-------------|
-| **InstallALCopsAnalyzers** | Download and install ALCops analyzer DLLs from NuGet or a local package |
-| **DetectTfmFromBCArtifact** | Detect the TFM from a Business Central artifact URL |
-| **DetectTfmFromNuGetDevTools** | Detect the TFM from the BC Development Tools NuGet package |
-| **DetectTfmFromMarketplace** | Detect the TFM from the AL Language extension on the VS Marketplace |
+| **ALCopsInstallAnalyzers** | Download and install ALCops analyzer DLLs from NuGet or a local package |
+| **ALCopsDetectTfmFromBCArtifact** | Detect the TFM from a Business Central artifact URL |
+| **ALCopsDetectTfmFromNuGetDevTools** | Detect the TFM from the BC Development Tools NuGet package |
+| **ALCopsDetectTfmFromMarketplace** | Detect the TFM from the AL Language extension on the VS Marketplace |
 
 ## Quick Start
 
@@ -17,7 +17,7 @@ The simplest usage — specify the TFM manually:
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       version: "latest"
       tfm: "net8.0"
@@ -29,7 +29,7 @@ steps:
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "net8.0"  # or "netstandard2.1" for older BC versions
 ```
@@ -40,7 +40,7 @@ If BC DevTools are already installed, point to the compiler directory for automa
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       compilerPath: "$(Agent.ToolsDirectory)/bc-devtools/bin"
 ```
@@ -51,12 +51,12 @@ Use HTTP Range requests to read `manifest.json` from a remote BC artifact (~100K
 
 ```yaml
 steps:
-  - task: DetectTfmFromBCArtifact@0
+  - task: ALCopsDetectTfmFromBCArtifact@0
     name: detectTfm
     inputs:
       artifactUrl: "$(bcArtifactUrl)"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```
@@ -67,12 +67,12 @@ For pipelines using `Microsoft.Dynamics.BusinessCentral.Development.Tools` from 
 
 ```yaml
 steps:
-  - task: DetectTfmFromNuGetDevTools@0
+  - task: ALCopsDetectTfmFromNuGetDevTools@0
     name: detectTfm
     inputs:
       version: "latest"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```
@@ -83,12 +83,12 @@ Detect the TFM from the AL Language VS Code extension:
 
 ```yaml
 steps:
-  - task: DetectTfmFromMarketplace@0
+  - task: ALCopsDetectTfmFromMarketplace@0
     name: detectTfm
     inputs:
       channel: "current"
 
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       tfm: "$(detectTfm.tfm)"
 ```
@@ -99,7 +99,7 @@ For environments without internet access, download the `.nupkg` file ahead of ti
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     inputs:
       packageSource: "local"
       localPackagePath: "$(Build.SourcesDirectory)/tools/ALCops.Analyzers.1.0.0.nupkg"
@@ -110,7 +110,7 @@ steps:
 
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@0
+  - task: ALCopsInstallAnalyzers@0
     name: alcops
     inputs:
       tfm: "net8.0"
@@ -124,7 +124,7 @@ steps:
 
 ## Task Reference
 
-### InstallALCopsAnalyzers
+### ALCopsInstallAnalyzers
 
 Download and install ALCops code analyzers for AL (Business Central).
 
@@ -150,7 +150,7 @@ Download and install ALCops code analyzers for AL (Business Central).
 
 ---
 
-### DetectTfmFromBCArtifact
+### ALCopsDetectTfmFromBCArtifact
 
 Detect the target framework moniker from a Business Central artifact URL by reading its manifest.
 
@@ -169,7 +169,7 @@ Detect the target framework moniker from a Business Central artifact URL by read
 
 ---
 
-### DetectTfmFromNuGetDevTools
+### ALCopsDetectTfmFromNuGetDevTools
 
 Detect the target framework moniker from the `Microsoft.Dynamics.BusinessCentral.Development.Tools` NuGet package version.
 
@@ -188,7 +188,7 @@ Detect the target framework moniker from the `Microsoft.Dynamics.BusinessCentral
 
 ---
 
-### DetectTfmFromMarketplace
+### ALCopsDetectTfmFromMarketplace
 
 Detect the target framework moniker from the AL Language VS Code extension on the Visual Studio Marketplace.
 
@@ -232,10 +232,10 @@ The extension contains **4 tasks**, each with its own entry point under `tasks/`
 
 ```
 tasks/
-  install-alcops/          # InstallALCopsAnalyzers — downloads and extracts analyzer DLLs
-  detect-tfm-bc-artifact/  # DetectTfmFromBCArtifact — reads manifest from remote BC artifact
-  detect-tfm-nuget-devtools/ # DetectTfmFromNuGetDevTools — resolves version from NuGet
-  detect-tfm-marketplace/  # DetectTfmFromMarketplace — queries VS Marketplace API
+  install-analyzers/          # ALCopsInstallAnalyzers — downloads and extracts analyzer DLLs
+  detect-tfm-bc-artifact/  # ALCopsDetectTfmFromBCArtifact — reads manifest from remote BC artifact
+  detect-tfm-nuget-devtools/ # ALCopsDetectTfmFromNuGetDevTools — resolves version from NuGet
+  detect-tfm-marketplace/  # ALCopsDetectTfmFromMarketplace — queries VS Marketplace API
 shared/                    # Shared modules (version-threshold, http-range, types)
 ```
 

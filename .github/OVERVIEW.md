@@ -8,19 +8,19 @@ An Azure DevOps extension that provides pipeline tasks for downloading and insta
 
 | Task | Purpose | Key Input |
 |------|---------|-----------|
-| **InstallALCopsAnalyzers** | Downloads ALCops from NuGet, extracts correct analyzer DLLs | `tfm` or `compilerPath` |
-| **DetectTfmFromBCArtifact** | Detects TFM from a BC artifact URL | `artifactUrl` |
-| **DetectTfmFromNuGetDevTools** | Detects TFM from NuGet DevTools package version | `version` |
-| **DetectTfmFromMarketplace** | Detects TFM from the VS Marketplace AL Language extension | `channel` |
+| **ALCopsInstallAnalyzers** | Downloads ALCops from NuGet, extracts correct analyzer DLLs | `tfm` or `compilerPath` |
+| **ALCopsDetectTfmFromBCArtifact** | Detects TFM from a BC artifact URL | `artifactUrl` |
+| **ALCopsDetectTfmFromNuGetDevTools** | Detects TFM from NuGet DevTools package version | `version` |
+| **ALCopsDetectTfmFromMarketplace** | Detects TFM from the VS Marketplace AL Language extension | `channel` |
 
-Detection tasks output a `tfm` variable that feeds into `InstallALCopsAnalyzers`.
+Detection tasks output a `tfm` variable that feeds into `ALCopsInstallAnalyzers`.
 
 ## Quick Start
 
 **Simplest** — you know your TFM:
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@1
+  - task: ALCopsInstallAnalyzers@1
     inputs:
       tfm: net8.0
 ```
@@ -28,7 +28,7 @@ steps:
 **Auto-detect** — from your AL compiler directory:
 ```yaml
 steps:
-  - task: InstallALCopsAnalyzers@1
+  - task: ALCopsInstallAnalyzers@1
     inputs:
       compilerPath: $(alcCompilerDir)
 ```
@@ -36,12 +36,12 @@ steps:
 **Chain detection** — from a BC artifact URL:
 ```yaml
 steps:
-  - task: DetectTfmFromBCArtifact@1
+  - task: ALCopsDetectTfmFromBCArtifact@1
     name: detectTfm
     inputs:
       artifactUrl: $(bcArtifactUrl)
 
-  - task: InstallALCopsAnalyzers@1
+  - task: ALCopsInstallAnalyzers@1
     inputs:
       tfm: $(detectTfm.tfm)
 ```

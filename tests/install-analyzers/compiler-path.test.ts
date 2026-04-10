@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 
-import { detectFromCompilerPath } from '../../tasks/install-alcops/src/compiler-path';
+import { detectFromCompilerPath } from '../../tasks/install-analyzers/src/compiler-path';
 
 const fixturesDir = path.resolve(__dirname, '..', 'fixtures');
 

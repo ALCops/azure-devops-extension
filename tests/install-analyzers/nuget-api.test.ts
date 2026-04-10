@@ -17,7 +17,7 @@ import {
     resolveVersion,
     getDownloadUrl,
     downloadPackage,
-} from '../../tasks/install-alcops/src/nuget-api';
+} from '../../tasks/install-analyzers/src/nuget-api';
 
 // ── Helpers ──
 

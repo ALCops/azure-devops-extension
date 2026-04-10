@@ -14,26 +14,26 @@ vi.mock('azure-pipelines-task-lib/task', () => ({
 }));
 
 // ── Mock nuget-api ──
-vi.mock('../../tasks/install-alcops/src/nuget-api', () => ({
+vi.mock('../../tasks/install-analyzers/src/nuget-api', () => ({
     resolveVersion: vi.fn(),
     downloadPackage: vi.fn(),
 }));
 
 // ── Mock nuget-extractor ──
-vi.mock('../../tasks/install-alcops/src/nuget-extractor', () => ({
+vi.mock('../../tasks/install-analyzers/src/nuget-extractor', () => ({
     extractAnalyzers: vi.fn(),
 }));
 
 // ── Mock compiler-path ──
-vi.mock('../../tasks/install-alcops/src/compiler-path', () => ({
+vi.mock('../../tasks/install-analyzers/src/compiler-path', () => ({
     detectFromCompilerPath: vi.fn(),
 }));
 
 import * as tl from 'azure-pipelines-task-lib/task';
-import { resolveVersion, downloadPackage } from '../../tasks/install-alcops/src/nuget-api';
-import { extractAnalyzers } from '../../tasks/install-alcops/src/nuget-extractor';
-import { detectFromCompilerPath } from '../../tasks/install-alcops/src/compiler-path';
-import { run } from '../../tasks/install-alcops/src/task-runner';
+import { resolveVersion, downloadPackage } from '../../tasks/install-analyzers/src/nuget-api';
+import { extractAnalyzers } from '../../tasks/install-analyzers/src/nuget-extractor';
+import { detectFromCompilerPath } from '../../tasks/install-analyzers/src/compiler-path';
+import { run } from '../../tasks/install-analyzers/src/task-runner';
 
 const mockGetInput = tl.getInput as ReturnType<typeof vi.fn>;
 const mockGetPathInput = tl.getPathInput as ReturnType<typeof vi.fn>;

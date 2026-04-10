@@ -43,7 +43,7 @@ describe('scaffold: shared types', () => {
 
 describe('scaffold: task.json files', () => {
     const taskDirs = [
-        'install-alcops',
+        'install-analyzers',
         'detect-tfm-bc-artifact',
         'detect-tfm-nuget-devtools',
         'detect-tfm-marketplace',

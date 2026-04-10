@@ -1,8 +1,8 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
     "id": "4d71228c-8416-44fd-9029-811b6ae7bf11",
-    "name": "DetectTfmFromNuGetDevTools",
-    "friendlyName": "Detect TFM from NuGet DevTools",
+    "name": "ALCopsDetectTfmFromNuGetDevTools",
+    "friendlyName": "ALCops Detect TFM from NuGet DevTools",
     "description": "Detect the target framework moniker from the Microsoft.Dynamics.BusinessCentral.Development.Tools NuGet package version",
     "helpMarkDown": "[Learn more about this task](https://alcops.dev)",
     "category": "Utility",
@@ -12,7 +12,7 @@
         "Minor": 0,
         "Patch": 0
     },
-    "instanceNameFormat": "Detect TFM from NuGet DevTools",
+    "instanceNameFormat": "ALCops Detect TFM from NuGet DevTools",
     "inputs": [
         {
             "name": "version",

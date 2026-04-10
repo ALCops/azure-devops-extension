@@ -31,10 +31,10 @@ npm run package:dev # Bundle + tfx → dev .vsix in ./out/
 
 | Task | Directory | Purpose |
 |------|-----------|---------|
-| InstallALCopsAnalyzers | `tasks/install-alcops/` | Downloads ALCops from NuGet, extracts correct DLLs |
-| DetectTfmFromBCArtifact | `tasks/detect-tfm-bc-artifact/` | Detects TFM from BC artifact URL (3-step waterfall) |
-| DetectTfmFromNuGetDevTools | `tasks/detect-tfm-nuget-devtools/` | Detects TFM from NuGet DevTools package version |
-| DetectTfmFromMarketplace | `tasks/detect-tfm-marketplace/` | Detects TFM from VS Marketplace AL Language extension |
+| ALCopsInstallAnalyzers | `tasks/install-analyzers/` | Downloads ALCops from NuGet, extracts correct DLLs |
+| ALCopsDetectTfmFromBCArtifact | `tasks/detect-tfm-bc-artifact/` | Detects TFM from BC artifact URL (3-step waterfall) |
+| ALCopsDetectTfmFromNuGetDevTools | `tasks/detect-tfm-nuget-devtools/` | Detects TFM from NuGet DevTools package version |
+| ALCopsDetectTfmFromMarketplace | `tasks/detect-tfm-marketplace/` | Detects TFM from VS Marketplace AL Language extension |
 
 ### Key directories
 

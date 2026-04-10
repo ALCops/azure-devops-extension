@@ -33,7 +33,7 @@ azure-devops-extension/
 │   ├── vsix-tfm.ts          VSIX → DLL → PE → TFM (shared chain)
 │   └── bc-artifact-url.ts   BC artifact URL parsing + variants
 ├── tasks/
-│   ├── install-alcops/             Core install task
+│   ├── install-analyzers/             Core install task
 │   ├── detect-tfm-bc-artifact/     BC Artifact detection (3-step waterfall)
 │   ├── detect-tfm-nuget-devtools/  NuGet DevTools detection
 │   └── detect-tfm-marketplace/     VS Marketplace detection
@@ -49,7 +49,7 @@ All code is developed test-first. Tests live in `tests/` organized by task:
 ```
 tests/
 ├── shared/                    Shared module tests
-├── install-alcops/            Core task tests
+├── install-analyzers/            Core task tests
 ├── detect-tfm-bc-artifact/    BC Artifact task tests
 ├── detect-tfm-nuget-devtools/ NuGet DevTools task tests
 ├── detect-tfm-marketplace/    Marketplace task tests
@@ -59,7 +59,7 @@ tests/
 Run specific test suites:
 ```bash
 npx vitest run tests/shared/             # Shared modules only
-npx vitest run tests/install-alcops/     # Core task only
+npx vitest run tests/install-analyzers/     # Core task only
 npx vitest run tests/detect-tfm-marketplace/  # Marketplace task only
 npx vitest --watch                       # Watch mode
 ```
@@ -176,14 +176,14 @@ git push origin v0.1.0
 
 ```yaml
 # Detect TFM from the VS Marketplace AL Language extension
-- task: DetectTfmFromMarketplace@1
+- task: ALCopsDetectTfmFromMarketplace@1
   displayName: 'Detect TFM'
 
 # Install ALCops analyzers using the detected TFM
-- task: InstallALCopsAnalyzers@1
+- task: ALCopsInstallAnalyzers@1
   displayName: 'Install ALCops'
   inputs:
-    tfm: $(DetectTfmFromMarketplace.tfm)
+    tfm: $(ALCopsDetectTfmFromMarketplace.tfm)
     source: nuget
 ```
 

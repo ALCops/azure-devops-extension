@@ -26,7 +26,7 @@ The extension is split into **4 independent tasks** packaged in a single `.vsix`
 │           │      ┌───────────────┘                                  │
 │           ▼      ▼                                                   │
 │  ┌─────────────────────────────────────────────────────┐            │
-│  │              InstallALCopsAnalyzers                   │           │
+│  │              ALCopsInstallAnalyzers                   │           │
 │  │              (431 KB)                                 │  Core     │
 │  │                                                       │  task    │
 │  │  Inputs: tfm (manual) | compilerPath (auto-detect)    │          │
@@ -57,7 +57,7 @@ azure-devops-extension/
 │   └── bc-artifact-url.ts               BC artifact URL parsing + variant construction
 │
 ├── tasks/
-│   ├── install-alcops/                  ← Core install task
+│   ├── install-analyzers/                  ← Core install task
 │   │   ├── task.json                    Azure DevOps task definition
 │   │   ├── src/
 │   │   │   ├── index.ts                 Entry point (calls task-runner)
@@ -94,7 +94,7 @@ azure-devops-extension/
 ├── tests/                               ← All tests (mirrors task structure)
 │   ├── scaffold.test.ts                 Structural smoke tests
 │   ├── shared/
-│   ├── install-alcops/
+│   ├── install-analyzers/
 │   ├── detect-tfm-bc-artifact/
 │   ├── detect-tfm-nuget-devtools/
 │   ├── detect-tfm-marketplace/
@@ -335,10 +335,10 @@ Dev dependencies: TypeScript, esbuild, vitest, eslint, tfx-cli.
 | `shared/zip-local.test.ts` | In-memory ZIP extraction | 9 |
 | `shared/vsix-tfm.test.ts` | VSIX → DLL → PE → TFM chain | 4 |
 | `shared/bc-artifact-url.test.ts` | Artifact URL parsing + variant construction | 7 |
-| `install-alcops/nuget-api.test.ts` | NuGet API client | 9 |
-| `install-alcops/nuget-extractor.test.ts` | ZIP extraction + TFM fallback | 6 |
-| `install-alcops/compiler-path.test.ts` | PE parsing from real fixture DLLs | 4 |
-| `install-alcops/task-runner.test.ts` | Core task orchestration | 4 |
+| `install-analyzers/nuget-api.test.ts` | NuGet API client | 9 |
+| `install-analyzers/nuget-extractor.test.ts` | ZIP extraction + TFM fallback | 6 |
+| `install-analyzers/compiler-path.test.ts` | PE parsing from real fixture DLLs | 4 |
+| `install-analyzers/task-runner.test.ts` | Core task orchestration | 4 |
 | `detect-tfm-bc-artifact/*.test.ts` | BC Artifact 3-step waterfall + task-runner | 11 |
 | `detect-tfm-nuget-devtools/*.test.ts` | NuGet DevTools detection + task-runner | 10 |
 | `detect-tfm-marketplace/*.test.ts` | Marketplace detection + task-runner | 15 |
