@@ -42,7 +42,7 @@ describe('detectTfmFromVsixBuffer', () => {
         expect(result.assemblyVersion).toBe('17.0.0.0');
         expect(mockExtractEntry).toHaveBeenCalledWith(
             expect.any(Buffer),
-            'extension/bin/CodeAnalysis/Microsoft.Dynamics.Nav.CodeAnalysis.dll',
+            'extension/bin/Analyzers/Microsoft.Dynamics.Nav.CodeAnalysis.dll',
             expect.any(Object),
         );
     });

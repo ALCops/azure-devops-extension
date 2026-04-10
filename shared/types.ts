@@ -39,7 +39,7 @@ export const VS_MARKETPLACE_API =
 export const AL_EXTENSION_ID = 'ms-dynamics-smb.al';
 
 /** Path to CodeAnalysis DLL inside the AL Language VSIX */
-export const VSIX_DLL_PATH = 'extension/bin/CodeAnalysis/Microsoft.Dynamics.Nav.CodeAnalysis.dll';
+export const VSIX_DLL_PATH = 'extension/bin/Analyzers/Microsoft.Dynamics.Nav.CodeAnalysis.dll';
 
 /** Result of TFM detection */
 export interface TfmDetectionResult {

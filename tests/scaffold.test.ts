@@ -37,7 +37,7 @@ describe('scaffold: shared types', () => {
     it('should export VS Marketplace constants', () => {
         expect(VS_MARKETPLACE_API).toContain('marketplace.visualstudio.com');
         expect(AL_EXTENSION_ID).toBe('ms-dynamics-smb.al');
-        expect(VSIX_DLL_PATH).toContain('CodeAnalysis');
+        expect(VSIX_DLL_PATH).toContain('Analyzers/');
     });
 });
 

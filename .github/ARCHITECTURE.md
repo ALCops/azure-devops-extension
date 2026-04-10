@@ -142,7 +142,7 @@ Constants and interfaces used across all tasks:
 | `NUGET_FLAT_CONTAINER` | `'https://api.nuget.org/v3-flatcontainer'` | nuget-api, nuget-devtools |
 | `VS_MARKETPLACE_API` | VS Marketplace gallery endpoint | marketplace |
 | `AL_EXTENSION_ID` | `'ms-dynamics-smb.al'` | marketplace |
-| `VSIX_DLL_PATH` | `'extension/bin/CodeAnalysis/...'` | vsix-tfm |
+| `VSIX_DLL_PATH` | `'extension/bin/Analyzers/...'` | vsix-tfm |
 | `TFM_PREFERENCE` | `['net10.0', ..., 'netstandard2.0']` | nuget-extractor |
 | `TfmDetectionResult` | Interface: `{ tfm, source, details? }` | All detection modules |
 
