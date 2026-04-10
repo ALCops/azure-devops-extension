@@ -7,15 +7,15 @@ vi.mock('../../shared/http-range', () => ({
     extractRemoteZipEntry: vi.fn(),
 }));
 vi.mock('../../shared/vsix-tfm', () => ({
-    detectTfmFromVsixBuffer: vi.fn(),
+    detectTfmFromDllBuffer: vi.fn(),
 }));
 
 import { extractRemoteZipEntry } from '../../shared/http-range';
-import { detectTfmFromVsixBuffer } from '../../shared/vsix-tfm';
+import { detectTfmFromDllBuffer } from '../../shared/vsix-tfm';
 
 const mockRequest = https.request as unknown as ReturnType<typeof vi.fn>;
 const mockExtract = vi.mocked(extractRemoteZipEntry);
-const mockDetectVsix = vi.mocked(detectTfmFromVsixBuffer);
+const mockDetectDll = vi.mocked(detectTfmFromDllBuffer);
 
 // ── Helpers ──
 
@@ -198,13 +198,13 @@ describe('resolveExtensionVersion', () => {
 });
 
 describe('detectFromMarketplace', () => {
-    it('detects TFM through full chain: marketplace → HTTP Range → VSIX → TFM', async () => {
+    it('detects TFM through full chain: marketplace → HTTP Range → DLL → TFM', async () => {
         const response = buildMarketplaceResponse([
             { version: '15.0.100.0', vsixUrl: 'https://example.com/al.vsix' },
         ]);
         enqueueMarketplaceResponse(response);
-        mockExtract.mockResolvedValue(Buffer.from('fake-vsix'));
-        mockDetectVsix.mockReturnValue({ tfm: 'net8.0', assemblyVersion: '17.0.0.0' });
+        mockExtract.mockResolvedValue(Buffer.from('fake-dll'));
+        mockDetectDll.mockReturnValue({ tfm: 'net8.0', assemblyVersion: '17.0.0.0' });
 
         const { detectFromMarketplace } = await importModule();
         const result = await detectFromMarketplace('current');
@@ -215,10 +215,10 @@ describe('detectFromMarketplace', () => {
         expect(result.source).toBe('vs-marketplace');
         expect(mockExtract).toHaveBeenCalledWith(
             'https://example.com/al.vsix',
-            'ALLanguage.vsix',
+            'extension/bin/Analyzers/Microsoft.Dynamics.Nav.CodeAnalysis.dll',
             expect.any(Object),
         );
-        expect(mockDetectVsix).toHaveBeenCalledWith(Buffer.from('fake-vsix'), expect.any(Object));
+        expect(mockDetectDll).toHaveBeenCalledWith(Buffer.from('fake-dll'), expect.any(Object));
     });
 
     it('detects netstandard2.1 for older assembly versions', async () => {
@@ -226,8 +226,8 @@ describe('detectFromMarketplace', () => {
             { version: '14.0.50.0', vsixUrl: 'https://example.com/old.vsix' },
         ]);
         enqueueMarketplaceResponse(response);
-        mockExtract.mockResolvedValue(Buffer.from('fake-vsix'));
-        mockDetectVsix.mockReturnValue({ tfm: 'netstandard2.1', assemblyVersion: '14.0.0.0' });
+        mockExtract.mockResolvedValue(Buffer.from('fake-dll'));
+        mockDetectDll.mockReturnValue({ tfm: 'netstandard2.1', assemblyVersion: '14.0.0.0' });
 
         const { detectFromMarketplace } = await importModule();
         const result = await detectFromMarketplace('current');
@@ -241,8 +241,8 @@ describe('detectFromMarketplace', () => {
             { version: '15.0.100.0', vsixUrl: 'https://example.com/al.vsix' },
         ]);
         enqueueMarketplaceResponse(response);
-        mockExtract.mockResolvedValue(Buffer.from('fake-vsix'));
-        mockDetectVsix.mockImplementation(() => {
+        mockExtract.mockResolvedValue(Buffer.from('fake-dll'));
+        mockDetectDll.mockImplementation(() => {
             throw new Error('Could not read assembly version from CodeAnalysis DLL');
         });
 

@@ -10,13 +10,11 @@ export interface VsixTfmResult {
 }
 
 /**
- * Detect TFM from a VSIX buffer (ALLanguage.vsix).
- * Extracts the CodeAnalysis DLL, reads its PE assembly version,
- * and maps to a target framework moniker.
+ * Detect TFM from a raw CodeAnalysis DLL buffer.
+ * Reads the PE assembly version and maps to a target framework moniker.
  */
-export function detectTfmFromVsixBuffer(vsixBuffer: Buffer, logger: Logger = nullLogger): VsixTfmResult {
+export function detectTfmFromDllBuffer(dllBuffer: Buffer, logger: Logger = nullLogger): VsixTfmResult {
     logger.info('Reading assembly version from CodeAnalysis DLL');
-    const dllBuffer = extractZipEntryFromBuffer(vsixBuffer, VSIX_DLL_PATH, logger);
 
     const arrayBuffer = dllBuffer.buffer.slice(
         dllBuffer.byteOffset,
@@ -40,4 +38,13 @@ export function detectTfmFromVsixBuffer(vsixBuffer: Buffer, logger: Logger = nul
     logger.info(`Assembly version: ${assemblyVersion} → TFM: ${tfm}`);
 
     return { tfm, assemblyVersion };
+}
+
+/**
+ * Detect TFM from a VSIX buffer (ALLanguage.vsix).
+ * Extracts the CodeAnalysis DLL, then delegates to detectTfmFromDllBuffer.
+ */
+export function detectTfmFromVsixBuffer(vsixBuffer: Buffer, logger: Logger = nullLogger): VsixTfmResult {
+    const dllBuffer = extractZipEntryFromBuffer(vsixBuffer, VSIX_DLL_PATH, logger);
+    return detectTfmFromDllBuffer(dllBuffer, logger);
 }

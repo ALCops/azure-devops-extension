@@ -1,7 +1,7 @@
 import * as https from 'https';
-import { TfmDetectionResult, VS_MARKETPLACE_API, AL_EXTENSION_ID } from '../../../shared/types';
+import { TfmDetectionResult, VS_MARKETPLACE_API, AL_EXTENSION_ID, VSIX_DLL_PATH } from '../../../shared/types';
 import { extractRemoteZipEntry } from '../../../shared/http-range';
-import { detectTfmFromVsixBuffer } from '../../../shared/vsix-tfm';
+import { detectTfmFromDllBuffer } from '../../../shared/vsix-tfm';
 import { Logger, nullLogger } from '../../../shared/logger';
 
 interface MarketplaceVersion {
@@ -112,10 +112,10 @@ export async function detectFromMarketplace(
     logger: Logger = nullLogger,
 ): Promise<TfmDetectionResult & { extensionVersion: string; assemblyVersion: string }> {
     const resolved = await resolveExtensionVersion(channel, logger);
-    logger.info('Downloading VSIX to extract CodeAnalysis DLL...');
+    logger.info('Extracting CodeAnalysis DLL from VSIX...');
     logger.debug(`VSIX URL: ${resolved.vsixUrl}`);
-    const vsixBuffer = await extractRemoteZipEntry(resolved.vsixUrl, 'ALLanguage.vsix', logger);
-    const { tfm, assemblyVersion } = detectTfmFromVsixBuffer(vsixBuffer, logger);
+    const dllBuffer = await extractRemoteZipEntry(resolved.vsixUrl, VSIX_DLL_PATH, logger);
+    const { tfm, assemblyVersion } = detectTfmFromDllBuffer(dllBuffer, logger);
 
     return {
         tfm,
