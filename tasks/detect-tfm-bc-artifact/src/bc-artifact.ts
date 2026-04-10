@@ -16,17 +16,17 @@ interface BCArtifactManifest {
 }
 
 /**
- * Detect TFM from a BC artifact URL using a 3-step waterfall:
+ * Detect TFM from a BC artifact URL using a fallback chain:
  *
- * A) Read `dotNetVersion` from the artifact's manifest.json (fast path)
- * B) Download the "core" artifact variant and extract TFM from the ALLanguage.vsix
- * C) Use HTTP Range on the "platform" artifact to extract TFM from the ALLanguage.vsix
+ * - Read `dotNetVersion` from the artifact's manifest.json (fast path)
+ * - If unavailable: download the "core" artifact and extract TFM from ALLanguage.vsix
+ * - If unavailable: HTTP Range the "platform" artifact to extract TFM from ALLanguage.vsix
  */
 export async function detectFromBCArtifact(artifactUrl: string, logger: Logger = nullLogger): Promise<TfmDetectionResult> {
-    // Step A: manifest.json dotNetVersion
+    // Manifest detection (fast path)
     let manifest: BCArtifactManifest = {};
     try {
-        logger.info('Step 1/3: Reading manifest.json from artifact...');
+        logger.info('Reading manifest.json from artifact...');
         const manifestBuffer = await extractRemoteZipEntry(artifactUrl, 'manifest.json', logger);
         manifest = JSON.parse(manifestBuffer.toString('utf-8'));
 
@@ -39,30 +39,30 @@ export async function detectFromBCArtifact(artifactUrl: string, logger: Logger =
                 details: `dotNetVersion=${manifest.dotNetVersion} from ${artifactUrl}`,
             };
         }
-        logger.warn('Manifest found but missing dotNetVersion, falling back to core artifact');
+        logger.warn('Manifest found but missing dotNetVersion, falling back');
     } catch {
-        logger.warn('Manifest not available, falling back to core artifact');
+        logger.warn('Manifest not available, falling back');
     }
 
-    // Step B: "core" artifact fallback
-    const coreResult = await tryDetectFromCoreArtifact(artifactUrl, logger);
+    // Fallback: core artifact
+    const coreResult = await detectFromCoreArtifact(artifactUrl, logger);
     if (coreResult) {
         return coreResult;
     }
 
-    // Step C: "platform" artifact fallback via HTTP Range
+    // Fallback: platform artifact via HTTP Range
     return detectFromPlatformArtifact(artifactUrl, manifest, logger);
 }
 
 /**
- * Try to detect TFM from the "core" artifact variant.
+ * Detect TFM from the "core" artifact variant.
  * Returns null if the core artifact doesn't exist (HTTP error).
  */
-async function tryDetectFromCoreArtifact(
+async function detectFromCoreArtifact(
     artifactUrl: string,
     logger: Logger = nullLogger,
 ): Promise<TfmDetectionResult | null> {
-    logger.info('Step 2/3: Downloading core artifact to extract ALLanguage.vsix...');
+    logger.info('Downloading core artifact to extract ALLanguage.vsix...');
     const coreUrl = buildArtifactVariantUrl(artifactUrl, 'core');
     logger.debug(`Core artifact URL: ${coreUrl}`);
 
@@ -70,7 +70,7 @@ async function tryDetectFromCoreArtifact(
     try {
         coreZipBuffer = await downloadFullZip(coreUrl, logger);
     } catch {
-        logger.warn('Core artifact not available, falling back to platform artifact');
+        logger.warn('Core artifact not available, falling back');
         return null;
     }
 
@@ -95,7 +95,7 @@ async function detectFromPlatformArtifact(
     manifest: BCArtifactManifest,
     logger: Logger = nullLogger,
 ): Promise<TfmDetectionResult> {
-    logger.info('Step 3/3: Extracting ALLanguage.vsix from platform artifact via HTTP Range...');
+    logger.info('Extracting ALLanguage.vsix from platform artifact via HTTP Range...');
     let platformUrl: string;
     if (manifest.platformUrl) {
         platformUrl = resolvePlatformUrl(artifactUrl, manifest.platformUrl);

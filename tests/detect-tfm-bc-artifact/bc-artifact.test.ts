@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 
 describe('detectFromBCArtifact', () => {
-    describe('Step A: manifest.json dotNetVersion', () => {
+    describe('manifest.json dotNetVersion', () => {
         it('detects net8.0 from manifest with dotNetVersion "8.0.24"', async () => {
             mockExtractRemote.mockResolvedValue(
                 Buffer.from(JSON.stringify({ dotNetVersion: '8.0.24', version: '26.0.12345.0' })),
@@ -69,14 +69,14 @@ describe('detectFromBCArtifact', () => {
         });
     });
 
-    describe('Step B: core artifact fallback', () => {
+    describe('core artifact fallback', () => {
         it('falls back to core when dotNetVersion is missing', async () => {
-            // Step A: manifest without dotNetVersion
+            // manifest without dotNetVersion
             mockExtractRemote.mockResolvedValueOnce(
                 Buffer.from(JSON.stringify({ version: '20.0.12345.0' })),
             );
 
-            // Step B: core download succeeds
+            // core download succeeds
             mockBuildVariantUrl.mockReturnValue('https://host/sandbox/20.0.0.0/core');
             const coreZipBuffer = Buffer.from('fake-core-zip');
             mockDownloadFullZip.mockResolvedValue(coreZipBuffer);
@@ -96,18 +96,18 @@ describe('detectFromBCArtifact', () => {
         });
     });
 
-    describe('Step C: platform artifact fallback', () => {
+    describe('platform artifact fallback', () => {
         it('falls back to platform when both dotNetVersion and core are unavailable', async () => {
-            // Step A: manifest without dotNetVersion
+            // manifest without dotNetVersion
             mockExtractRemote.mockResolvedValueOnce(
                 Buffer.from(JSON.stringify({ version: '18.0.0.0' })),
             );
 
-            // Step B: core download fails (404)
+            // core download fails (404)
             mockBuildVariantUrl.mockReturnValue('https://host/sandbox/18.0.0.0/core');
             mockDownloadFullZip.mockRejectedValue(new Error('HTTP 404'));
 
-            // Step C: platform via HTTP Range
+            // platform via HTTP Range
             const vsixBuffer = Buffer.from('fake-platform-vsix');
             mockExtractRemote.mockResolvedValueOnce(vsixBuffer);
             mockDetectVsix.mockReturnValue({ tfm: 'netstandard2.1', assemblyVersion: '12.0.0.0' });
@@ -122,7 +122,7 @@ describe('detectFromBCArtifact', () => {
         });
 
         it('uses platformUrl from manifest when available', async () => {
-            // Step A: manifest with platformUrl but no dotNetVersion
+            // manifest with platformUrl but no dotNetVersion
             mockExtractRemote.mockResolvedValueOnce(
                 Buffer.from(JSON.stringify({
                     version: '18.0.0.0',
@@ -130,11 +130,11 @@ describe('detectFromBCArtifact', () => {
                 })),
             );
 
-            // Step B: core fails
+            // core fails
             mockBuildVariantUrl.mockReturnValue('https://host/sandbox/18.0.0.0/core');
             mockDownloadFullZip.mockRejectedValue(new Error('HTTP 404'));
 
-            // Step C: platform via HTTP Range using manifest platformUrl
+            // platform via HTTP Range using manifest platformUrl
             const vsixBuffer = Buffer.from('fake-platform-vsix');
             mockExtractRemote.mockResolvedValueOnce(vsixBuffer);
             mockDetectVsix.mockReturnValue({ tfm: 'netstandard2.1', assemblyVersion: '12.0.0.0' });
@@ -178,14 +178,14 @@ describe('detectFromBCArtifact', () => {
         });
     });
 
-    describe('Step A failure: manifest.json missing or unparseable', () => {
-        it('falls through to Step B when manifest.json is missing from the ZIP', async () => {
-            // Step A: extractRemoteZipEntry throws (entry not found)
+    describe('manifest.json missing or unparseable', () => {
+        it('falls through to core when manifest.json is missing from the ZIP', async () => {
+            // extractRemoteZipEntry throws (entry not found)
             mockExtractRemote.mockRejectedValueOnce(
                 new Error('Entry not found in ZIP: manifest.json'),
             );
 
-            // Step B: core download succeeds
+            // core download succeeds
             mockBuildVariantUrl.mockReturnValue('https://host/sandbox/15.0.0.0/core');
             const coreZipBuffer = Buffer.from('fake-core-zip');
             mockDownloadFullZip.mockResolvedValue(coreZipBuffer);
@@ -200,17 +200,17 @@ describe('detectFromBCArtifact', () => {
             expect(result.details).toContain('core artifact');
         });
 
-        it('falls through to Step C when manifest.json is missing and core fails', async () => {
-            // Step A: extractRemoteZipEntry throws
+        it('falls through to platform when manifest.json is missing and core fails', async () => {
+            // extractRemoteZipEntry throws
             mockExtractRemote.mockRejectedValueOnce(
                 new Error('Entry not found in ZIP: manifest.json'),
             );
 
-            // Step B: core download fails
+            // core download fails
             mockBuildVariantUrl.mockReturnValueOnce('https://host/sandbox/15.0.0.0/core');
             mockDownloadFullZip.mockRejectedValue(new Error('HTTP 404'));
 
-            // Step C: platform via HTTP Range (buildArtifactVariantUrl called again for platform)
+            // platform via HTTP Range (buildArtifactVariantUrl called again for platform)
             mockBuildVariantUrl.mockReturnValueOnce('https://host/sandbox/15.0.0.0/platform');
             const vsixBuffer = Buffer.from('fake-platform-vsix');
             mockExtractRemote.mockResolvedValueOnce(vsixBuffer);
@@ -223,13 +223,13 @@ describe('detectFromBCArtifact', () => {
             expect(result.details).toContain('platform artifact');
         });
 
-        it('falls through to Step B when manifest.json contains invalid JSON', async () => {
-            // Step A: extraction succeeds but content is not valid JSON
+        it('falls through to core when manifest.json contains invalid JSON', async () => {
+            // extraction succeeds but content is not valid JSON
             mockExtractRemote.mockResolvedValueOnce(
                 Buffer.from('this is not json'),
             );
 
-            // Step B: core download succeeds
+            // core download succeeds
             mockBuildVariantUrl.mockReturnValue('https://host/sandbox/15.0.0.0/core');
             mockDownloadFullZip.mockResolvedValue(Buffer.from('fake-core-zip'));
             mockExtractLocal.mockReturnValue(Buffer.from('fake-vsix'));
