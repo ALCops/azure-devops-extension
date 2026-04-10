@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "alcops-ado",
     "publisher": "Arthurvdv",
-    "name": "ALCops for Azure DevOps",
+    "name": "ALCops",
     "version": "0.0.0",
     "description": "Download and install ALCops code analyzers for AL (Business Central) pipelines",
     "categories": ["Azure Pipelines"],
