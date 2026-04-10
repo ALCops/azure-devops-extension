@@ -3,7 +3,7 @@
     "id": "alcops-ado-dev",
     "publisher": "Arthurvdv",
     "name": "ALCops for Azure DevOps (Dev)",
-    "version": "1.0.0",
+    "version": "0.0.0",
     "description": "DEV/TEST build — Download and install ALCops code analyzers for AL (Business Central) pipelines",
     "categories": ["Azure Pipelines"],
     "targets": [

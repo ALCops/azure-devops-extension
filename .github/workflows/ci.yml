@@ -78,19 +78,23 @@ jobs:
         run: |
           for f in tasks/*/task.json; do
             jq --indent 4 \
-              '.version.Minor = ${{ steps.gitversion.outputs.minor }} | .version.Patch = ${{ steps.gitversion.outputs.patch }}' \
+              '.version.Minor = ${{ steps.gitversion.outputs.minor }} | .version.Patch = ${{ github.run_number }}' \
               "$f" > tmp.$$ && mv tmp.$$ "$f"
           done
 
       - name: Publish dev extension
+        env:
+          DEV_VERSION: "${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ github.run_number }}"
         run: |
           npx tfx extension publish \
             --manifest-globs vss-extension.dev.json \
-            --override "{\"version\": \"${{ steps.gitversion.outputs.majorMinorPatch }}\"}" \
+            --override "{\"version\": \"${DEV_VERSION}\"}" \
             --token ${{ secrets.VISUAL_STUDIO_MARKETPLACE_PAT }}
 
       - name: Summary
+        env:
+          DEV_VERSION: "${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ github.run_number }}"
         run: |
           echo "### 🚀 Dev Extension Published" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version:** ${{ steps.gitversion.outputs.majorMinorPatch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${DEV_VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Extension:** alcops-ado-dev" >> $GITHUB_STEP_SUMMARY
