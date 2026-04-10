@@ -1,5 +1,6 @@
 import { parseZipCentralDirectory, ZipCentralEntry } from './http-range';
 import { inflateSync } from 'fflate';
+import { Logger, nullLogger } from './logger';
 
 /**
  * Find a ZIP central directory entry by its filename (basename match).
@@ -22,6 +23,7 @@ export function findEntryByFilename(
 export function extractZipEntryFromBuffer(
     zipBuffer: Buffer,
     entryPath: string,
+    logger: Logger = nullLogger,
 ): Buffer {
     const eocd = readEOCDFromBuffer(zipBuffer);
     const cdBytes = zipBuffer.subarray(
@@ -29,6 +31,7 @@ export function extractZipEntryFromBuffer(
         eocd.centralDirectoryOffset + eocd.centralDirectorySize,
     );
     const entries = parseZipCentralDirectory(cdBytes);
+    logger.debug(`ZIP buffer: ${entries.length} entries, searching for '${entryPath}'`);
 
     // Try exact match first, then basename match
     let entry = entries.find((e) => e.fileName === entryPath);
@@ -36,8 +39,10 @@ export function extractZipEntryFromBuffer(
         entry = findEntryByFilename(entries, entryPath);
     }
     if (!entry) {
+        logger.debug(`Entry '${entryPath}' not found. Available: ${entries.map(e => e.fileName).join(', ')}`);
         throw new Error(`Entry not found in ZIP buffer: ${entryPath}`);
     }
+    logger.debug(`Found entry '${entry.fileName}': ${entry.uncompressedSize} bytes`);
 
     return extractEntryData(zipBuffer, entry);
 }

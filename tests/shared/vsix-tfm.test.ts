@@ -43,6 +43,7 @@ describe('detectTfmFromVsixBuffer', () => {
         expect(mockExtractEntry).toHaveBeenCalledWith(
             expect.any(Buffer),
             'extension/bin/CodeAnalysis/Microsoft.Dynamics.Nav.CodeAnalysis.dll',
+            expect.any(Object),
         );
     });
 

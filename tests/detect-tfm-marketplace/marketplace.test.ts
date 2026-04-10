@@ -216,8 +216,9 @@ describe('detectFromMarketplace', () => {
         expect(mockExtract).toHaveBeenCalledWith(
             'https://example.com/al.vsix',
             'ALLanguage.vsix',
+            expect.any(Object),
         );
-        expect(mockDetectVsix).toHaveBeenCalledWith(Buffer.from('fake-vsix'));
+        expect(mockDetectVsix).toHaveBeenCalledWith(Buffer.from('fake-vsix'), expect.any(Object));
     });
 
     it('detects netstandard2.1 for older assembly versions', async () => {

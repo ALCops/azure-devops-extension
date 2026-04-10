@@ -1,4 +1,5 @@
 import * as https from 'https';
+import { Logger, nullLogger } from './logger';
 
 export interface ParsedArtifactUrl {
     /** Full original URL (without query string) */
@@ -60,13 +61,17 @@ export function buildArtifactVariantUrl(
  * Used for "core" artifacts which are small enough for a full download.
  * Follows redirects (up to 5 hops).
  */
-export async function downloadFullZip(url: string): Promise<Buffer> {
-    return doGet(url);
+export async function downloadFullZip(url: string, logger: Logger = nullLogger): Promise<Buffer> {
+    logger.info(`Downloading ZIP`);
+    logger.debug(`URL: ${url}`);
+    const buf = await doGet(url, 0, logger);
+    logger.debug(`Downloaded ${buf.length} bytes`);
+    return buf;
 }
 
 // ── Internal helpers ──
 
-function doGet(url: string, redirectCount = 0): Promise<Buffer> {
+function doGet(url: string, redirectCount = 0, logger: Logger = nullLogger): Promise<Buffer> {
     if (redirectCount > 5) {
         return Promise.reject(new Error('Too many redirects'));
     }
@@ -79,7 +84,8 @@ function doGet(url: string, redirectCount = 0): Promise<Buffer> {
                 res.statusCode < 400 &&
                 res.headers.location
             ) {
-                resolve(doGet(res.headers.location, redirectCount + 1));
+                logger.debug(`Redirect ${res.statusCode} → ${res.headers.location}`);
+                resolve(doGet(res.headers.location, redirectCount + 1, logger));
                 return;
             }
 

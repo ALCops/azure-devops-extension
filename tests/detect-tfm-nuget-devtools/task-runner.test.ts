@@ -4,6 +4,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('azure-pipelines-task-lib/task', () => ({
     getInput: vi.fn(),
     debug: vi.fn(),
+    warning: vi.fn(),
+    error: vi.fn(),
     setVariable: vi.fn(),
     setResult: vi.fn(),
     TaskResult: { Succeeded: 0, Failed: 2 },
@@ -33,7 +35,7 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(detectFromNuGetDevTools).toHaveBeenCalledWith('26.0.12345.0');
+        expect(detectFromNuGetDevTools).toHaveBeenCalledWith('26.0.12345.0', expect.any(Object));
         expect(tl.setVariable).toHaveBeenCalledWith('tfm', 'net8.0', false, true);
         expect(tl.setVariable).toHaveBeenCalledWith('devToolsVersion', '26.0.12345.0', false, true);
         expect(tl.setResult).toHaveBeenCalledWith(
@@ -52,7 +54,7 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(detectFromNuGetDevTools).toHaveBeenCalledWith('latest');
+        expect(detectFromNuGetDevTools).toHaveBeenCalledWith('latest', expect.any(Object));
     });
 
     it('sets TaskResult.Failed on error', async () => {

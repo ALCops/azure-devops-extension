@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('azure-pipelines-task-lib/task', () => ({
     getInput: vi.fn(),
     debug: vi.fn(),
+    warning: vi.fn(),
+    error: vi.fn(),
     setVariable: vi.fn(),
     setResult: vi.fn(),
     TaskResult: { Succeeded: 0, Failed: 2 },
@@ -41,7 +43,7 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(mockDetect).toHaveBeenCalledWith('current');
+        expect(mockDetect).toHaveBeenCalledWith('current', expect.any(Object));
         expect(mockSetVariable).toHaveBeenCalledWith('tfm', 'net8.0', false, true);
         expect(mockSetVariable).toHaveBeenCalledWith('extensionVersion', '15.0.100.0', false, true);
         expect(mockSetVariable).toHaveBeenCalledWith('assemblyVersion', '17.0.0.0', false, true);
@@ -66,7 +68,7 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(mockDetect).toHaveBeenCalledWith('14.0.50.0');
+        expect(mockDetect).toHaveBeenCalledWith('14.0.50.0', expect.any(Object));
     });
 
     it('defaults channel to "current" when not provided', async () => {
@@ -80,7 +82,7 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(mockDetect).toHaveBeenCalledWith('current');
+        expect(mockDetect).toHaveBeenCalledWith('current', expect.any(Object));
     });
 
     it('sets TaskResult.Failed on error', async () => {

@@ -3,12 +3,14 @@ import * as path from 'path';
 import * as PEStruct from 'pe-struct';
 import { TfmDetectionResult, AL_COMPILER_DLL } from '../../../shared/types';
 import { getTargetFrameworkFromVersion } from '../../../shared/version-threshold';
+import { Logger, nullLogger } from '../../../shared/logger';
 
 /**
  * Detect TFM from a directory containing Microsoft.Dynamics.Nav.CodeAnalysis.dll.
  * Uses pe-struct to read the AssemblyVersion, then version-threshold to map to TFM.
  */
-export async function detectFromCompilerPath(dirPath: string): Promise<TfmDetectionResult> {
+export async function detectFromCompilerPath(dirPath: string, logger: Logger = nullLogger): Promise<TfmDetectionResult> {
+    logger.info(`Detecting TFM from compiler at: ${dirPath}`);
     const dllPath = path.join(dirPath, AL_COMPILER_DLL);
 
     if (!fs.existsSync(dllPath)) {
@@ -41,6 +43,7 @@ export async function detectFromCompilerPath(dirPath: string): Promise<TfmDetect
     ].join('.');
 
     const tfm = getTargetFrameworkFromVersion(version);
+    logger.info(`Assembly version: ${version} → TFM: ${tfm}`);
 
     return {
         tfm,

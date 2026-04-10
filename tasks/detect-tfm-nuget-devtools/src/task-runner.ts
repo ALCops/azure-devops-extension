@@ -1,12 +1,15 @@
 import * as tl from 'azure-pipelines-task-lib/task';
 import { detectFromNuGetDevTools } from './nuget-devtools';
+import { createTaskLogger } from '../../../shared/logger';
 
 export async function run(): Promise<void> {
     try {
+        const logger = createTaskLogger();
         const version = tl.getInput('version') || 'latest';
-        tl.debug(`Detecting TFM from NuGet DevTools version: ${version}`);
+        logger.info('Detecting TFM from NuGet DevTools...');
+        logger.debug(`Requested version: ${version}`);
 
-        const result = await detectFromNuGetDevTools(version);
+        const result = await detectFromNuGetDevTools(version, logger);
 
         tl.setVariable('tfm', result.tfm, false, true);
         tl.setVariable('devToolsVersion', result.details?.match(/version (.+)/)?.[1] || '', false, true);

@@ -2,6 +2,7 @@ import * as https from 'https';
 import { TfmDetectionResult, VS_MARKETPLACE_API, AL_EXTENSION_ID } from '../../../shared/types';
 import { extractRemoteZipEntry } from '../../../shared/http-range';
 import { detectTfmFromVsixBuffer } from '../../../shared/vsix-tfm';
+import { Logger, nullLogger } from '../../../shared/logger';
 
 interface MarketplaceVersion {
     version: string;
@@ -24,7 +25,8 @@ interface MarketplaceApiResponse {
 /**
  * Query VS Marketplace for AL Language extension versions.
  */
-export async function queryMarketplace(): Promise<MarketplaceVersion[]> {
+export async function queryMarketplace(logger: Logger = nullLogger): Promise<MarketplaceVersion[]> {
+    logger.info('Querying VS Marketplace for AL Language extension...');
     const body = JSON.stringify({
         filters: [{
             criteria: [
@@ -61,6 +63,7 @@ export async function queryMarketplace(): Promise<MarketplaceVersion[]> {
         });
     }
 
+    logger.debug(`Found ${versions.length} extension versions`);
     return versions;
 }
 
@@ -70,27 +73,34 @@ export async function queryMarketplace(): Promise<MarketplaceVersion[]> {
  * 'prerelease' → latest pre-release (or stable if no pre-release)
  * specific version string → that exact version
  */
-export async function resolveExtensionVersion(channel: string): Promise<MarketplaceVersion> {
-    const versions = await queryMarketplace();
+export async function resolveExtensionVersion(channel: string, logger: Logger = nullLogger): Promise<MarketplaceVersion> {
+    const versions = await queryMarketplace(logger);
 
     if (channel === 'current') {
         const stable = versions.find(v => !v.isPreRelease);
         if (!stable) throw new Error('No stable version found');
+        logger.info(`Resolved extension version: ${stable.version}`);
         return stable;
     }
 
     if (channel === 'prerelease') {
         const preRelease = versions.find(v => v.isPreRelease);
-        if (preRelease) return preRelease;
+        if (preRelease) {
+            logger.info(`Resolved extension version: ${preRelease.version} (pre-release)`);
+            return preRelease;
+        }
         // Fall back to latest stable
         const stable = versions.find(v => !v.isPreRelease);
         if (!stable) throw new Error('No versions found');
+        logger.warn('No pre-release version found, falling back to latest stable');
+        logger.info(`Resolved extension version: ${stable.version}`);
         return stable;
     }
 
     // Specific version
     const exact = versions.find(v => v.version === channel);
     if (!exact) throw new Error(`Version ${channel} not found on VS Marketplace`);
+    logger.info(`Resolved extension version: ${exact.version}`);
     return exact;
 }
 
@@ -99,10 +109,13 @@ export async function resolveExtensionVersion(channel: string): Promise<Marketpl
  */
 export async function detectFromMarketplace(
     channel: string,
+    logger: Logger = nullLogger,
 ): Promise<TfmDetectionResult & { extensionVersion: string; assemblyVersion: string }> {
-    const resolved = await resolveExtensionVersion(channel);
-    const vsixBuffer = await extractRemoteZipEntry(resolved.vsixUrl, 'ALLanguage.vsix');
-    const { tfm, assemblyVersion } = detectTfmFromVsixBuffer(vsixBuffer);
+    const resolved = await resolveExtensionVersion(channel, logger);
+    logger.info('Downloading VSIX to extract CodeAnalysis DLL...');
+    logger.debug(`VSIX URL: ${resolved.vsixUrl}`);
+    const vsixBuffer = await extractRemoteZipEntry(resolved.vsixUrl, 'ALLanguage.vsix', logger);
+    const { tfm, assemblyVersion } = detectTfmFromVsixBuffer(vsixBuffer, logger);
 
     return {
         tfm,

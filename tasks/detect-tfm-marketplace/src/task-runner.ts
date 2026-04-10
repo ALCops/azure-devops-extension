@@ -1,14 +1,17 @@
 import * as tl from 'azure-pipelines-task-lib/task';
 import { detectFromMarketplace } from './marketplace';
+import { createTaskLogger } from '../../../shared/logger';
 
 export async function run(): Promise<void> {
     try {
+        const logger = createTaskLogger();
         const channel = tl.getInput('channel') || 'current';
         const specificVersion = tl.getInput('extensionVersion');
         const effectiveChannel = specificVersion || channel;
 
-        tl.debug(`Detecting TFM from VS Marketplace (channel: ${effectiveChannel})`);
-        const result = await detectFromMarketplace(effectiveChannel);
+        logger.info('Detecting TFM from VS Marketplace...');
+        logger.debug(`Channel: ${effectiveChannel}`);
+        const result = await detectFromMarketplace(effectiveChannel, logger);
 
         tl.setVariable('tfm', result.tfm, false, true);
         tl.setVariable('extensionVersion', result.extensionVersion, false, true);

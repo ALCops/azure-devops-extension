@@ -1,12 +1,14 @@
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as path from 'path';
 import { TargetFramework } from '../../../shared/types';
+import { createTaskLogger } from '../../../shared/logger';
 import { resolveVersion, downloadPackage } from './nuget-api';
 import { extractAnalyzers } from './nuget-extractor';
 import { detectFromCompilerPath } from './compiler-path';
 
 export async function run(): Promise<void> {
     // 1. Read inputs
+    const logger = createTaskLogger();
     const version = tl.getInput('version') || 'latest';
     const packageSource = tl.getInput('packageSource') || 'nuget';
     const localPackagePath = tl.getPathInput('localPackagePath');
@@ -15,15 +17,17 @@ export async function run(): Promise<void> {
     const outputPath = tl.getPathInput('outputPath') ||
         path.join(tl.getVariable('Build.SourcesDirectory') || '.', '.alcops');
 
+    logger.info('Installing ALCops Analyzers...');
+    logger.debug(`Inputs: version=${version}, packageSource=${packageSource}, tfm=${tfmInput || '(auto)'}, compilerPath=${compilerPath || '(none)'}`);
+
     // 2. Determine TFM
     let tfm: TargetFramework;
     if (tfmInput) {
         tfm = tfmInput;
-        tl.debug(`Using manual TFM: ${tfm}`);
+        logger.info(`Using manual TFM: ${tfm}`);
     } else if (compilerPath) {
-        const result = await detectFromCompilerPath(compilerPath);
+        const result = await detectFromCompilerPath(compilerPath, logger);
         tfm = result.tfm;
-        tl.debug(`Detected TFM from compiler: ${tfm} (${result.details})`);
     } else {
         throw new Error('Either tfm or compilerPath must be provided');
     }
@@ -31,16 +35,16 @@ export async function run(): Promise<void> {
     // 3. Get package
     let nupkgPath: string;
     if (packageSource === 'local' && localPackagePath) {
+        logger.info(`Using local package: ${localPackagePath}`);
         nupkgPath = localPackagePath;
     } else {
-        const resolved = await resolveVersion(version);
-        tl.debug(`Resolved ALCops version: ${resolved}`);
-        nupkgPath = await downloadPackage(resolved, outputPath);
+        const resolved = await resolveVersion(version, logger);
+        nupkgPath = await downloadPackage(resolved, outputPath, logger);
         tl.setVariable('alcopsVersion', resolved);
     }
 
     // 4. Extract
-    const { extractedPath, files, actualTfm } = await extractAnalyzers(nupkgPath, tfm, outputPath);
+    const { extractedPath, files, actualTfm } = await extractAnalyzers(nupkgPath, tfm, outputPath, logger);
 
     // 5. Set outputs
     tl.setVariable('tfm', actualTfm, false, true);

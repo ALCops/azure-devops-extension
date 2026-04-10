@@ -91,8 +91,8 @@ describe('detectFromBCArtifact', () => {
             expect(result.details).toContain('assemblyVersion=14.0.0.0');
             expect(result.details).toContain('core artifact');
             expect(mockBuildVariantUrl).toHaveBeenCalledWith(ARTIFACT_URL, 'core');
-            expect(mockExtractLocal).toHaveBeenCalledWith(coreZipBuffer, 'ALLanguage.vsix');
-            expect(mockDetectVsix).toHaveBeenCalledWith(vsixBuffer);
+            expect(mockExtractLocal).toHaveBeenCalledWith(coreZipBuffer, 'ALLanguage.vsix', expect.any(Object));
+            expect(mockDetectVsix).toHaveBeenCalledWith(vsixBuffer, expect.any(Object));
         });
     });
 
@@ -147,6 +147,7 @@ describe('detectFromBCArtifact', () => {
                 2,
                 expect.stringContaining('sandbox/18.0.0.0/platform'),
                 'ALLanguage.vsix',
+                expect.any(Object),
             );
         });
 
@@ -172,6 +173,7 @@ describe('detectFromBCArtifact', () => {
                 2,
                 'https://different-host/sandbox/18.0.0.0/platform',
                 'ALLanguage.vsix',
+                expect.any(Object),
             );
         });
     });
@@ -249,7 +251,7 @@ describe('detectFromBCArtifact', () => {
 
             await detectFromBCArtifact(ARTIFACT_URL);
 
-            expect(mockExtractRemote).toHaveBeenCalledWith(ARTIFACT_URL, 'manifest.json');
+            expect(mockExtractRemote).toHaveBeenCalledWith(ARTIFACT_URL, 'manifest.json', expect.any(Object));
         });
 
         it('passes "ALLanguage.vsix" for VSIX extraction from core', async () => {
@@ -263,7 +265,7 @@ describe('detectFromBCArtifact', () => {
 
             await detectFromBCArtifact(ARTIFACT_URL);
 
-            expect(mockExtractLocal).toHaveBeenCalledWith(expect.any(Buffer), 'ALLanguage.vsix');
+            expect(mockExtractLocal).toHaveBeenCalledWith(expect.any(Buffer), 'ALLanguage.vsix', expect.any(Object));
         });
     });
 });

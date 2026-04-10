@@ -1,28 +1,31 @@
 import * as https from 'https';
 import { inflateSync } from 'fflate';
+import { Logger, nullLogger } from './logger';
 
 /**
  * Fetch a range of bytes from a URL using HTTP Range requests.
  * Returns the byte data as a Buffer.
  * Follows redirects (up to 5 hops).
  */
-export async function fetchRange(url: string, start: number, end: number): Promise<Buffer> {
+export async function fetchRange(url: string, start: number, end: number, logger: Logger = nullLogger): Promise<Buffer> {
+    logger.debug(`Range request: bytes=${start}-${end}`);
     return doRequest(url, {
         headers: { Range: `bytes=${start}-${end}` },
-    });
+    }, 0, logger);
 }
 
 /**
  * Get the total content length of a URL via a HEAD request.
  * Follows redirects.
  */
-export async function getContentLength(url: string): Promise<number> {
-    const buf = await doRequest(url, { method: 'HEAD' });
+export async function getContentLength(url: string, logger: Logger = nullLogger): Promise<number> {
+    const buf = await doRequest(url, { method: 'HEAD' }, 0, logger);
     // doRequest stores the content-length on the returned buffer when method is HEAD
     const len = (buf as Buffer & { __contentLength?: number }).__contentLength;
     if (len === undefined) {
         throw new Error('Server did not return Content-Length header');
     }
+    logger.debug(`Content-Length: ${len}`);
     return len;
 }
 
@@ -36,11 +39,11 @@ export interface ZipEOCD {
 /**
  * Read the EOCD from the last ~65KB of a remote ZIP file.
  */
-export async function readZipEOCD(url: string): Promise<ZipEOCD> {
-    const totalSize = await getContentLength(url);
+export async function readZipEOCD(url: string, logger: Logger = nullLogger): Promise<ZipEOCD> {
+    const totalSize = await getContentLength(url, logger);
     const tailSize = Math.min(totalSize, 65557);
     const tailStart = totalSize - tailSize;
-    const tail = await fetchRange(url, tailStart, totalSize - 1);
+    const tail = await fetchRange(url, tailStart, totalSize - 1, logger);
 
     const EOCD_SIG = 0x06054b50;
 
@@ -50,6 +53,7 @@ export async function readZipEOCD(url: string): Promise<ZipEOCD> {
             const entryCount = tail.readUInt16LE(i + 10);
             const centralDirectorySize = tail.readUInt32LE(i + 12);
             const centralDirectoryOffset = tail.readUInt32LE(i + 16);
+            logger.debug(`EOCD: ${entryCount} entries, central directory at offset ${centralDirectoryOffset} (${centralDirectorySize} bytes)`);
             return { centralDirectoryOffset, centralDirectorySize, entryCount };
         }
     }
@@ -112,24 +116,28 @@ export function parseZipCentralDirectory(buffer: Buffer): ZipCentralEntry[] {
  * 3. Read local file header + data
  * 4. Decompress if needed (deflate via fflate)
  */
-export async function extractRemoteZipEntry(url: string, entryPath: string): Promise<Buffer> {
-    const eocd = await readZipEOCD(url);
+export async function extractRemoteZipEntry(url: string, entryPath: string, logger: Logger = nullLogger): Promise<Buffer> {
+    logger.info(`Extracting '${entryPath}' from remote ZIP`);
+    const eocd = await readZipEOCD(url, logger);
     const cdBytes = await fetchRange(
         url,
         eocd.centralDirectoryOffset,
         eocd.centralDirectoryOffset + eocd.centralDirectorySize - 1,
+        logger,
     );
     const entries = parseZipCentralDirectory(cdBytes);
 
     const entry = entries.find((e) => e.fileName === entryPath);
     if (!entry) {
+        logger.debug(`Entry '${entryPath}' not found among ${entries.length} entries`);
         throw new Error(`Entry not found in ZIP: ${entryPath}`);
     }
+    logger.debug(`Found entry '${entryPath}': ${entry.compressedSize} bytes compressed, method=${entry.compressionMethod}`);
 
     // Read local file header (30 bytes fixed) + variable-length name + extra fields + compressed data
     const localHeaderEnd =
         entry.localHeaderOffset + 30 + 256 + entry.compressedSize;
-    const localBuf = await fetchRange(url, entry.localHeaderOffset, localHeaderEnd);
+    const localBuf = await fetchRange(url, entry.localHeaderOffset, localHeaderEnd, logger);
 
     const LOCAL_SIG = 0x04034b50;
     if (localBuf.readUInt32LE(0) !== LOCAL_SIG) {
@@ -156,6 +164,7 @@ function doRequest(
     url: string,
     options: { method?: string; headers?: Record<string, string> },
     redirectCount = 0,
+    logger: Logger = nullLogger,
 ): Promise<Buffer> {
     if (redirectCount > 5) {
         return Promise.reject(new Error('Too many redirects'));
@@ -163,9 +172,9 @@ function doRequest(
 
     return new Promise((resolve, reject) => {
         const req = https.request(url, { method: options.method ?? 'GET', headers: options.headers ?? {} }, (res) => {
-            // Follow redirects
             if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                resolve(doRequest(res.headers.location, options, redirectCount + 1));
+                logger.debug(`Redirect ${res.statusCode} → ${res.headers.location}`);
+                resolve(doRequest(res.headers.location, options, redirectCount + 1, logger));
                 return;
             }
 

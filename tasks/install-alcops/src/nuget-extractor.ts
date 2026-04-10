@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { unzipSync } from 'fflate';
 import { TargetFramework, TFM_PREFERENCE } from '../../../shared/types';
+import { Logger, nullLogger } from '../../../shared/logger';
 
 /**
  * Extract analyzer DLLs from a .nupkg file for the given TFM.
@@ -13,7 +14,9 @@ export async function extractAnalyzers(
     nupkgPath: string,
     targetTfm: TargetFramework,
     outputDir: string,
+    logger: Logger = nullLogger,
 ): Promise<{ extractedPath: string; files: string[]; actualTfm: TargetFramework }> {
+    logger.info(`Extracting analyzers for TFM: ${targetTfm}`);
     const zipData = fs.readFileSync(nupkgPath);
     const unzipped = unzipSync(new Uint8Array(zipData));
 
@@ -47,6 +50,11 @@ export async function extractAnalyzers(
         );
     }
 
+    if (actualTfm !== targetTfm) {
+        logger.warn(`Exact TFM '${targetTfm}' not found in package, using fallback: ${actualTfm}`);
+    }
+    logger.debug(`Available TFM folders: ${[...new Set(libEntries.map((e) => e.split('/')[1]))].join(', ')}`);
+
     const extractedPath = path.join(outputDir, 'analyzers', actualTfm);
     if (!fs.existsSync(extractedPath)) {
         fs.mkdirSync(extractedPath, { recursive: true });
@@ -60,5 +68,6 @@ export async function extractAnalyzers(
         files.push(destFile);
     }
 
+    logger.info(`Extracted ${files.length} analyzer DLLs to ${extractedPath}`);
     return { extractedPath, files, actualTfm };
 }

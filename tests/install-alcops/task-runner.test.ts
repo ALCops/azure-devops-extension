@@ -8,6 +8,8 @@ vi.mock('azure-pipelines-task-lib/task', () => ({
     setVariable: vi.fn(),
     setResult: vi.fn(),
     debug: vi.fn(),
+    warning: vi.fn(),
+    error: vi.fn(),
     TaskResult: { Succeeded: 0, Failed: 1 },
 }));
 
@@ -86,6 +88,7 @@ describe('task-runner', () => {
             '/tmp/package.nupkg',
             'net8.0',
             expect.any(String),
+            expect.any(Object),
         );
         expect(mockSetResult).toHaveBeenCalledWith(0, expect.stringContaining('1 analyzers'));
     });
@@ -116,11 +119,12 @@ describe('task-runner', () => {
 
         await run();
 
-        expect(mockDetectFromCompilerPath).toHaveBeenCalledWith('/compiler/dir');
+        expect(mockDetectFromCompilerPath).toHaveBeenCalledWith('/compiler/dir', expect.any(Object));
         expect(mockExtractAnalyzers).toHaveBeenCalledWith(
             '/tmp/package.nupkg',
             'netstandard2.1',
             expect.any(String),
+            expect.any(Object),
         );
         expect(mockSetVariable).toHaveBeenCalledWith('tfm', 'netstandard2.1', false, true);
         expect(mockSetResult).toHaveBeenCalledWith(0, expect.stringContaining('2 analyzers'));
@@ -152,6 +156,7 @@ describe('task-runner', () => {
             '/local/package.nupkg',
             'net8.0',
             expect.any(String),
+            expect.any(Object),
         );
     });
 

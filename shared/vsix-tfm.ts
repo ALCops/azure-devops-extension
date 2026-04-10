@@ -2,6 +2,7 @@ import * as PEStruct from 'pe-struct';
 import { TargetFramework, VSIX_DLL_PATH } from './types';
 import { getTargetFrameworkFromVersion } from './version-threshold';
 import { extractZipEntryFromBuffer } from './zip-local';
+import { Logger, nullLogger } from './logger';
 
 export interface VsixTfmResult {
     tfm: TargetFramework;
@@ -13,8 +14,9 @@ export interface VsixTfmResult {
  * Extracts the CodeAnalysis DLL, reads its PE assembly version,
  * and maps to a target framework moniker.
  */
-export function detectTfmFromVsixBuffer(vsixBuffer: Buffer): VsixTfmResult {
-    const dllBuffer = extractZipEntryFromBuffer(vsixBuffer, VSIX_DLL_PATH);
+export function detectTfmFromVsixBuffer(vsixBuffer: Buffer, logger: Logger = nullLogger): VsixTfmResult {
+    logger.info('Reading assembly version from CodeAnalysis DLL');
+    const dllBuffer = extractZipEntryFromBuffer(vsixBuffer, VSIX_DLL_PATH, logger);
 
     const arrayBuffer = dllBuffer.buffer.slice(
         dllBuffer.byteOffset,
@@ -35,6 +37,7 @@ export function detectTfmFromVsixBuffer(vsixBuffer: Buffer): VsixTfmResult {
 
     const assemblyVersion = `${asm.MajorVersion.value}.${asm.MinorVersion.value}.${asm.BuildNumber.value}.${asm.RevisionNumber.value}`;
     const tfm = getTargetFrameworkFromVersion(assemblyVersion);
+    logger.info(`Assembly version: ${assemblyVersion} → TFM: ${tfm}`);
 
     return { tfm, assemblyVersion };
 }

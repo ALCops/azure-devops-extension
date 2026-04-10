@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('azure-pipelines-task-lib/task', () => ({
     getInput: vi.fn(),
     debug: vi.fn(),
+    warning: vi.fn(),
+    error: vi.fn(),
     setVariable: vi.fn(),
     setResult: vi.fn(),
     TaskResult: { Succeeded: 0, Failed: 2 },
@@ -38,7 +40,7 @@ describe('task-runner', () => {
         await run();
 
         expect(mockGetInput).toHaveBeenCalledWith('artifactUrl', true);
-        expect(mockDetect).toHaveBeenCalledWith(artifactUrl);
+        expect(mockDetect).toHaveBeenCalledWith(artifactUrl, expect.any(Object));
         expect(mockSetVariable).toHaveBeenCalledWith('tfm', 'net8.0', false, true);
         expect(mockSetVariable).toHaveBeenCalledWith('dotNetVersion', '8.0.24', false, true);
         expect(mockSetResult).toHaveBeenCalledWith(

@@ -2,6 +2,7 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import { NUGET_PACKAGE_NAME, NUGET_FLAT_CONTAINER } from '../../../shared/types';
+import { Logger, nullLogger } from '../../../shared/logger';
 
 const packageId = NUGET_PACKAGE_NAME.toLowerCase();
 
@@ -11,12 +12,15 @@ const packageId = NUGET_PACKAGE_NAME.toLowerCase();
  * - 'prerelease': last version including pre-release
  * - specific version: returned as-is
  */
-export async function resolveVersion(requested: string): Promise<string> {
+export async function resolveVersion(requested: string, logger: Logger = nullLogger): Promise<string> {
     if (requested !== 'latest' && requested !== 'prerelease') {
+        logger.info(`Using specified ALCops version: ${requested}`);
         return requested;
     }
 
+    logger.info(`Resolving ALCops version: '${requested}'`);
     const url = `${NUGET_FLAT_CONTAINER}/${packageId}/index.json`;
+    logger.debug(`NuGet index URL: ${url}`);
     const data = await httpsGet(url);
     const json = JSON.parse(data.toString('utf-8')) as { versions: string[] };
 
@@ -25,7 +29,9 @@ export async function resolveVersion(requested: string): Promise<string> {
     }
 
     if (requested === 'prerelease') {
-        return json.versions[json.versions.length - 1];
+        const resolved = json.versions[json.versions.length - 1];
+        logger.info(`Resolved to: ${resolved}`);
+        return resolved;
     }
 
     // 'latest': find last stable version (no hyphen in version string)
@@ -33,7 +39,9 @@ export async function resolveVersion(requested: string): Promise<string> {
     if (stable.length === 0) {
         throw new Error(`No stable versions found for ${NUGET_PACKAGE_NAME}`);
     }
-    return stable[stable.length - 1];
+    const resolved = stable[stable.length - 1];
+    logger.info(`Resolved to: ${resolved}`);
+    return resolved;
 }
 
 /** Build the download URL for a specific version. */
@@ -42,14 +50,17 @@ export function getDownloadUrl(version: string): string {
 }
 
 /** Download the .nupkg to a dest directory, return the file path. */
-export async function downloadPackage(version: string, destDir: string): Promise<string> {
+export async function downloadPackage(version: string, destDir: string, logger: Logger = nullLogger): Promise<string> {
     const url = getDownloadUrl(version);
+    logger.info('Downloading ALCops package from NuGet...');
+    logger.debug(`Download URL: ${url}`);
     if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true });
     }
     const destPath = path.join(destDir, 'package.nupkg');
     const data = await httpsGet(url);
     fs.writeFileSync(destPath, data);
+    logger.debug(`Package saved to: ${destPath} (${data.length} bytes)`);
     return destPath;
 }
 
