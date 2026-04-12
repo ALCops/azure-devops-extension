@@ -41,6 +41,9 @@
         "Code Analysis",
         "ALCops"
     ],
+    "galleryFlags": [
+        "Public"
+    ],
     "files": [
         { "path": "tasks/install-analyzers" },
         { "path": "tasks/detect-tfm-bc-artifact" },
