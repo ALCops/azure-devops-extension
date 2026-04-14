@@ -20,7 +20,7 @@
             "label": "DevTools Version",
             "defaultValue": "latest",
             "required": false,
-            "helpMarkDown": "Version of `Microsoft.Dynamics.BusinessCentral.Development.Tools`: `latest`, `prerelease`, or a specific version (e.g., `26.0.12345.0`)"
+            "helpMarkDown": "Version of `Microsoft.Dynamics.BusinessCentral.Development.Tools`: `latest`, `prerelease`, or a specific version (e.g., `17.0.34.45391`)"
         }
     ],
     "outputVariables": [
