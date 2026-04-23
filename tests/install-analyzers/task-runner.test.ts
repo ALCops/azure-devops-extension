@@ -73,7 +73,7 @@ describe('task-runner', () => {
             return undefined;
         });
 
-        mockResolveVersion.mockResolvedValue('1.0.0');
+        mockResolveVersion.mockResolvedValue({ version: '1.0.0' });
         mockDownloadPackage.mockResolvedValue('/tmp/package.nupkg');
         mockExtractAnalyzers.mockResolvedValue({
             extractedPath: '/build/src/.alcops',
@@ -109,7 +109,7 @@ describe('task-runner', () => {
             source: 'compiler-path',
             details: 'Microsoft.Dynamics.Nav.CodeAnalysis.dll v15.0.0.0',
         });
-        mockResolveVersion.mockResolvedValue('2.0.0');
+        mockResolveVersion.mockResolvedValue({ version: '2.0.0' });
         mockDownloadPackage.mockResolvedValue('/tmp/package.nupkg');
         mockExtractAnalyzers.mockResolvedValue({
             extractedPath: '/build/src/.alcops',

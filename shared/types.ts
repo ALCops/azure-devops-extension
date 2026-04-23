@@ -19,6 +19,9 @@ export const NUGET_PACKAGE_NAME = 'ALCops.Analyzers';
 /** NuGet v3 flat container base URL */
 export const NUGET_FLAT_CONTAINER = 'https://api.nuget.org/v3-flatcontainer';
 
+/** NuGet v3 Registration API base URL (gzip + SemVer 2.0.0 hive) */
+export const NUGET_REGISTRATION_BASE = 'https://api.nuget.org/v3/registration5-gz-semver2';
+
 /** VS Marketplace API endpoint */
 export const VS_MARKETPLACE_API =
     'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery?api-version=3.0-preview.1';
@@ -34,4 +37,32 @@ export interface TfmDetectionResult {
     tfm: TargetFramework;
     source: string;
     details?: string;
+}
+
+// ── NuGet V3 Registration API types ──
+
+export interface RegistrationCatalogEntry {
+    version: string;
+    listed?: boolean;
+}
+
+export interface RegistrationLeaf {
+    catalogEntry: RegistrationCatalogEntry;
+    packageContent: string;
+}
+
+export interface RegistrationPage {
+    '@id': string;
+    items?: RegistrationLeaf[];
+}
+
+export interface RegistrationIndex {
+    items: RegistrationPage[];
+}
+
+/** Parsed version info from the Registration API */
+export interface RegistrationVersion {
+    version: string;
+    listed: boolean;
+    packageContent: string;
 }

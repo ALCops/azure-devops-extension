@@ -50,6 +50,10 @@ A single task with 5+ TFM detection modes was confusing. Separate tasks:
 azure-devops-extension/
 ├── shared/                              ← Shared TypeScript modules
 │   ├── types.ts                         Constants, types, interfaces
+│   ├── logger.ts                        Logger interface + ADO pipeline logger
+│   ├── log-inputs.ts                    Task input logging helper
+│   ├── http-client.ts                   Gzip-aware HTTPS client with User-Agent
+│   ├── nuget-registration.ts            NuGet V3 Registration API client
 │   ├── version-threshold.ts             .NET runtime version → TFM mapping
 │   ├── http-range.ts                    HTTP Range requests + remote ZIP parsing
 │   ├── zip-local.ts                     In-memory ZIP extraction from Buffer
@@ -138,13 +142,18 @@ Constants and interfaces used across all tasks:
 | Export | Value | Used By |
 |--------|-------|---------|
 | `AL_COMPILER_DLL` | `'Microsoft.Dynamics.Nav.CodeAnalysis.dll'` | compiler-path |
-| `NUGET_PACKAGE_NAME` | `'ALCops.Analyzers'` | nuget-api |
+| `NUGET_PACKAGE_NAME` | `'ALCops.Analyzers'` | nuget-api, nuget-registration |
 | `NUGET_FLAT_CONTAINER` | `'https://api.nuget.org/v3-flatcontainer'` | nuget-api, nuget-devtools |
+| `NUGET_REGISTRATION_BASE` | `'https://api.nuget.org/v3/registration5-gz-semver2'` | nuget-registration |
 | `VS_MARKETPLACE_API` | VS Marketplace gallery endpoint | marketplace |
 | `AL_EXTENSION_ID` | `'ms-dynamics-smb.al'` | marketplace |
 | `VSIX_DLL_PATH` | `'extension/bin/Analyzers/...'` | vsix-tfm |
 | `TFM_PREFERENCE` | `['net10.0', ..., 'netstandard2.0']` | nuget-extractor, nuget-devtools |
 | `TfmDetectionResult` | Interface: `{ tfm, source, details? }` | All detection modules |
+| `RegistrationIndex` | Interface: Registration API index response | nuget-registration |
+| `RegistrationPage` | Interface: Registration API page | nuget-registration |
+| `RegistrationLeaf` | Interface: Registration API leaf (version entry) | nuget-registration |
+| `RegistrationVersion` | Interface: `{ version, listed, packageContent }` | nuget-api, nuget-registration |
 
 ### binary-tfm.ts
 
@@ -153,6 +162,22 @@ Binary search for TFM and assembly version directly from .NET assembly DLL buffe
 - `detectTfmFromBuffer(buffer)` — Searches for `TargetFrameworkAttribute` then extracts the TFM string (e.g., `.NETCoreApp,Version=v8.0` → `net8.0`)
 - `detectAssemblyVersionFromBuffer(buffer)` — Searches for `AssemblyFileVersionAttribute` then extracts the version using blob format validation (`\x01\x00` prolog + length byte + version string)
 - `toShortTfm(longTfm)` — Converts long-form TFM to short form (e.g., `.NETCoreApp,Version=v8.0` → `net8.0`)
+
+### http-client.ts
+
+Gzip-aware HTTPS client with `User-Agent` header support. Used by `nuget-registration.ts` for the gzip-compressed Registration API and by `nuget-api.ts` for binary package downloads.
+
+- `httpsGetBuffer(url, userAgent?)` — Fetches a URL, decompresses gzip if `Content-Encoding: gzip`, follows redirects (up to 5 hops)
+- `httpsGetJson<T>(url, userAgent?)` — Fetches and JSON-parses in one step
+
+### nuget-registration.ts
+
+NuGet V3 Registration API client. Queries the `registration5-gz-semver2` hive (gzip-compressed, SemVer 2.0.0 inclusive) to get version metadata including listing status and download URLs.
+
+- `parseRegistrationIndex(index)` — Pure function: extracts `RegistrationVersion[]` from a `RegistrationIndex`. Defaults `listed` to `true` when absent. Skips pages without inlined items.
+- `queryNuGetRegistration(packageName, userAgent?, logger?)` — Full pipeline: fetches the registration index, resolves external pages in parallel (`Promise.all`), returns all versions.
+
+Pagination: NuGet.org inlines page items for packages with < 128 versions. For >= 128 versions, pages are external references (no `items` array). The module detects this and fetches external pages in parallel.
 
 ### version-threshold.ts
 
@@ -339,7 +364,7 @@ Dev dependencies: TypeScript, esbuild, vitest, eslint, tfx-cli.
 | `shared/zip-local.test.ts` | In-memory ZIP extraction | 11 |
 | `shared/vsix-tfm.test.ts` | VSIX → DLL → binary search → TFM chain | 5 |
 | `shared/bc-artifact-url.test.ts` | Artifact URL parsing + variant construction | 7 |
-| `install-analyzers/nuget-api.test.ts` | NuGet API client | 9 |
+| `install-analyzers/nuget-api.test.ts` | NuGet API client | 11 |
 | `install-analyzers/nuget-extractor.test.ts` | ZIP extraction + TFM compat matching | 17 |
 | `install-analyzers/compiler-path.test.ts` | Binary TFM detection from real fixture DLLs | 15 |
 | `install-analyzers/task-runner.test.ts` | Core task orchestration | 4 |
@@ -347,4 +372,5 @@ Dev dependencies: TypeScript, esbuild, vitest, eslint, tfx-cli.
 | `detect-tfm-nuget-devtools/*.test.ts` | NuGet DevTools HTTP Range detection + task-runner | 14 |
 | `detect-tfm-marketplace/*.test.ts` | Marketplace detection + task-runner | 17 |
 | `shared/log-inputs.test.ts` | Task input logging | 9 |
-| **Total** | | **182** |
+| `shared/nuget-registration.test.ts` | NuGet V3 Registration API parsing + HTTP | 13 |
+| **Total** | | **199** |

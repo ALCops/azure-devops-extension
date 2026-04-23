@@ -4,20 +4,28 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { NUGET_FLAT_CONTAINER } from '@shared/types';
+import { NUGET_FLAT_CONTAINER, RegistrationVersion } from '@shared/types';
 
-// ── Mock https module ──
+// ── Mock https module (for downloadPackage binary fetches) ──
 vi.mock('https', () => ({
     request: vi.fn(),
 }));
 
+// ── Mock nuget-registration module ──
+vi.mock('../../shared/nuget-registration', () => ({
+    queryNuGetRegistration: vi.fn(),
+}));
+
 const mockRequest = https.request as unknown as ReturnType<typeof vi.fn>;
 
+import { queryNuGetRegistration } from '@shared/nuget-registration';
 import {
     resolveVersion,
     getDownloadUrl,
     downloadPackage,
 } from '../../tasks/install-analyzers/src/nuget-api';
+
+const mockQueryRegistration = queryNuGetRegistration as ReturnType<typeof vi.fn>;
 
 // ── Helpers ──
 
@@ -54,6 +62,14 @@ function enqueueResponse(opts: MockResponseOptions) {
     );
 }
 
+function makeVersion(version: string, listed = true): RegistrationVersion {
+    return {
+        version,
+        listed,
+        packageContent: `https://api.nuget.org/v3-flatcontainer/alcops.analyzers/${version.toLowerCase()}/alcops.analyzers.${version.toLowerCase()}.nupkg`,
+    };
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
 });
@@ -62,57 +78,73 @@ beforeEach(() => {
 // resolveVersion
 // ────────────────────────────────────────────────────────────────
 describe('resolveVersion', () => {
-    const indexJson = {
-        versions: [
-            '0.1.0-beta.1',
-            '0.1.0',
-            '0.2.0',
-            '0.3.0-rc.1',
-        ],
-    };
+    it('returns the last listed stable version for "latest"', async () => {
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('0.1.0-beta.1'),
+            makeVersion('0.1.0'),
+            makeVersion('0.2.0'),
+            makeVersion('0.3.0-rc.1'),
+        ]);
 
-    it('returns the last stable version for "latest"', async () => {
-        enqueueResponse({
-            statusCode: 200,
-            body: Buffer.from(JSON.stringify(indexJson)),
-        });
-
-        const version = await resolveVersion('latest');
-        expect(version).toBe('0.2.0');
+        const result = await resolveVersion('latest');
+        expect(result.version).toBe('0.2.0');
+        expect(result.packageContentUrl).toBeDefined();
     });
 
-    it('returns the last version (including pre-release) for "prerelease"', async () => {
-        enqueueResponse({
-            statusCode: 200,
-            body: Buffer.from(JSON.stringify(indexJson)),
-        });
+    it('returns the last listed version (including pre-release) for "prerelease"', async () => {
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('0.1.0'),
+            makeVersion('0.2.0'),
+            makeVersion('0.3.0-rc.1'),
+        ]);
 
-        const version = await resolveVersion('prerelease');
-        expect(version).toBe('0.3.0-rc.1');
+        const result = await resolveVersion('prerelease');
+        expect(result.version).toBe('0.3.0-rc.1');
     });
 
-    it('returns specific version as-is', async () => {
-        const version = await resolveVersion('1.2.3');
-        expect(version).toBe('1.2.3');
-        expect(mockRequest).not.toHaveBeenCalled();
+    it('returns specific version as-is without querying NuGet', async () => {
+        const result = await resolveVersion('1.2.3');
+        expect(result.version).toBe('1.2.3');
+        expect(result.packageContentUrl).toBeUndefined();
+        expect(mockQueryRegistration).not.toHaveBeenCalled();
     });
 
-    it('throws when no versions are found', async () => {
-        enqueueResponse({
-            statusCode: 200,
-            body: Buffer.from(JSON.stringify({ versions: [] })),
-        });
+    it('filters out unlisted versions', async () => {
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('0.1.0', true),
+            makeVersion('0.2.0', false),  // unlisted
+            makeVersion('0.3.0', true),
+        ]);
 
-        await expect(resolveVersion('latest')).rejects.toThrow('No versions found');
+        const result = await resolveVersion('latest');
+        expect(result.version).toBe('0.3.0');
+    });
+
+    it('throws when no listed versions exist', async () => {
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('1.0.0', false),
+        ]);
+
+        await expect(resolveVersion('latest')).rejects.toThrow('No listed versions');
     });
 
     it('throws when no stable versions exist for "latest"', async () => {
-        enqueueResponse({
-            statusCode: 200,
-            body: Buffer.from(JSON.stringify({ versions: ['1.0.0-beta.1'] })),
-        });
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('1.0.0-beta.1', true),
+        ]);
 
         await expect(resolveVersion('latest')).rejects.toThrow('No stable versions');
+    });
+
+    it('sorts by semver, not lexicographically', async () => {
+        mockQueryRegistration.mockResolvedValue([
+            makeVersion('0.10.0'),
+            makeVersion('0.2.0'),
+            makeVersion('0.9.0'),
+        ]);
+
+        const result = await resolveVersion('latest');
+        expect(result.version).toBe('0.10.0');
     });
 });
 
@@ -120,18 +152,17 @@ describe('resolveVersion', () => {
 // getDownloadUrl
 // ────────────────────────────────────────────────────────────────
 describe('getDownloadUrl', () => {
-    it('formats the URL correctly', () => {
+    it('formats the V3 Flat Container URL correctly', () => {
         const url = getDownloadUrl('1.2.3');
         expect(url).toBe(
             `${NUGET_FLAT_CONTAINER}/alcops.analyzers/1.2.3/alcops.analyzers.1.2.3.nupkg`,
         );
     });
 
-    it('handles pre-release versions', () => {
-        const url = getDownloadUrl('1.0.0-beta.1');
-        expect(url).toBe(
-            `${NUGET_FLAT_CONTAINER}/alcops.analyzers/1.0.0-beta.1/alcops.analyzers.1.0.0-beta.1.nupkg`,
-        );
+    it('lowercases the version in the URL', () => {
+        const url = getDownloadUrl('1.0.0-Beta.1');
+        expect(url).toContain('/1.0.0-beta.1/');
+        expect(url).toContain('alcops.analyzers.1.0.0-beta.1.nupkg');
     });
 });
 
@@ -163,6 +194,35 @@ describe('downloadPackage', () => {
         try {
             const result = await downloadPackage('2.0.0', nestedDir);
             expect(fs.existsSync(result)).toBe(true);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    it('uses packageContentUrl when provided', async () => {
+        const fakeContent = Buffer.from('PK-content');
+        enqueueResponse({ statusCode: 200, body: fakeContent });
+
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nuget-api-test-'));
+        const customUrl = 'https://api.nuget.org/v3-flatcontainer/alcops.analyzers/1.0.0/alcops.analyzers.1.0.0.nupkg';
+        try {
+            await downloadPackage('1.0.0', tmpDir, undefined, customUrl);
+            const calledUrl = mockRequest.mock.calls[0][0];
+            expect(calledUrl).toBe(customUrl);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    it('sets User-Agent header', async () => {
+        const fakeContent = Buffer.from('PK-content');
+        enqueueResponse({ statusCode: 200, body: fakeContent });
+
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nuget-api-test-'));
+        try {
+            await downloadPackage('1.0.0', tmpDir);
+            const calledOpts = mockRequest.mock.calls[0][1] as { headers?: Record<string, string> };
+            expect(calledOpts.headers?.['User-Agent']).toBe('ALCops-AzureDevOps');
         } finally {
             fs.rmSync(tmpDir, { recursive: true, force: true });
         }

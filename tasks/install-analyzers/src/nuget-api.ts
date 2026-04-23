@@ -1,96 +1,82 @@
-import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
-import { NUGET_PACKAGE_NAME, NUGET_FLAT_CONTAINER } from '../../../shared/types';
+import { compare, prerelease, valid } from 'semver';
+import { NUGET_PACKAGE_NAME, NUGET_FLAT_CONTAINER, RegistrationVersion } from '../../../shared/types';
 import { Logger, nullLogger } from '../../../shared/logger';
+import { queryNuGetRegistration } from '../../../shared/nuget-registration';
+import { httpsGetBuffer } from '../../../shared/http-client';
 
 const packageId = NUGET_PACKAGE_NAME.toLowerCase();
+const USER_AGENT = 'ALCops-AzureDevOps';
+
+export interface ResolvedVersion {
+    version: string;
+    packageContentUrl?: string;
+}
 
 /**
  * Resolve the version to download.
- * - 'latest': last stable version from NuGet index
- * - 'prerelease': last version including pre-release
- * - specific version: returned as-is
+ * - 'latest': last listed stable version from NuGet Registration API
+ * - 'prerelease': last listed version including pre-release
+ * - specific version: returned as-is (no packageContentUrl)
  */
-export async function resolveVersion(requested: string, logger: Logger = nullLogger): Promise<string> {
+export async function resolveVersion(requested: string, logger: Logger = nullLogger): Promise<ResolvedVersion> {
     if (requested !== 'latest' && requested !== 'prerelease') {
         logger.info(`Using specified ALCops version: ${requested}`);
-        return requested;
+        return { version: requested };
     }
 
     logger.info(`Resolving ALCops version: '${requested}'`);
-    const url = `${NUGET_FLAT_CONTAINER}/${packageId}/index.json`;
-    logger.debug(`NuGet index URL: ${url}`);
-    const data = await httpsGet(url);
-    const json = JSON.parse(data.toString('utf-8')) as { versions: string[] };
+    const allVersions = await queryNuGetRegistration(NUGET_PACKAGE_NAME, USER_AGENT, logger);
 
-    if (!json.versions || json.versions.length === 0) {
-        throw new Error(`No versions found for ${NUGET_PACKAGE_NAME}`);
+    const listed = allVersions
+        .filter((v) => v.listed)
+        .filter((v) => valid(v.version) !== null);
+
+    if (listed.length === 0) {
+        throw new Error(`No listed versions found for ${NUGET_PACKAGE_NAME}`);
     }
 
-    if (requested === 'prerelease') {
-        const resolved = json.versions[json.versions.length - 1];
-        logger.info(`Resolved to: ${resolved}`);
-        return resolved;
+    let candidates: RegistrationVersion[];
+    if (requested === 'latest') {
+        candidates = listed.filter((v) => prerelease(v.version) === null);
+        if (candidates.length === 0) {
+            throw new Error(`No stable versions found for ${NUGET_PACKAGE_NAME}`);
+        }
+    } else {
+        // 'prerelease': all listed versions
+        candidates = listed;
     }
 
-    // 'latest': find last stable version (no hyphen in version string)
-    const stable = json.versions.filter((v) => !v.includes('-'));
-    if (stable.length === 0) {
-        throw new Error(`No stable versions found for ${NUGET_PACKAGE_NAME}`);
-    }
-    const resolved = stable[stable.length - 1];
-    logger.info(`Resolved to: ${resolved}`);
-    return resolved;
+    candidates.sort((a, b) => compare(a.version, b.version));
+    const best = candidates[candidates.length - 1];
+
+    logger.info(`Resolved to: ${best.version}`);
+    return { version: best.version, packageContentUrl: best.packageContent };
 }
 
-/** Build the download URL for a specific version. */
+/** Build the V3 Flat Container download URL for a specific version. */
 export function getDownloadUrl(version: string): string {
-    return `${NUGET_FLAT_CONTAINER}/${packageId}/${version}/${packageId}.${version}.nupkg`;
+    const lowerVersion = version.toLowerCase();
+    return `${NUGET_FLAT_CONTAINER}/${packageId}/${lowerVersion}/${packageId}.${lowerVersion}.nupkg`;
 }
 
 /** Download the .nupkg to a dest directory, return the file path. */
-export async function downloadPackage(version: string, destDir: string, logger: Logger = nullLogger): Promise<string> {
-    const url = getDownloadUrl(version);
+export async function downloadPackage(
+    version: string,
+    destDir: string,
+    logger: Logger = nullLogger,
+    packageContentUrl?: string,
+): Promise<string> {
+    const url = packageContentUrl ?? getDownloadUrl(version);
     logger.info('Downloading ALCops package from NuGet...');
     logger.debug(`Download URL: ${url}`);
     if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir, { recursive: true });
     }
     const destPath = path.join(destDir, 'package.nupkg');
-    const data = await httpsGet(url);
+    const data = await httpsGetBuffer(url, USER_AGENT);
     fs.writeFileSync(destPath, data);
     logger.debug(`Package saved to: ${destPath} (${data.length} bytes)`);
     return destPath;
-}
-
-// ── Internal helper ──
-
-function httpsGet(url: string, redirectCount = 0): Promise<Buffer> {
-    if (redirectCount > 5) {
-        return Promise.reject(new Error('Too many redirects'));
-    }
-
-    return new Promise((resolve, reject) => {
-        const req = https.request(url, { method: 'GET' }, (res) => {
-            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                resolve(httpsGet(res.headers.location, redirectCount + 1));
-                return;
-            }
-
-            if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-                res.resume();
-                reject(new Error(`HTTP ${res.statusCode} for ${url}`));
-                return;
-            }
-
-            const chunks: Buffer[] = [];
-            res.on('data', (chunk: Buffer) => chunks.push(chunk));
-            res.on('end', () => resolve(Buffer.concat(chunks)));
-            res.on('error', reject);
-        });
-
-        req.on('error', reject);
-        req.end();
-    });
 }
