@@ -45,8 +45,8 @@ export async function run(): Promise<void> {
     } else {
         const resolved = await resolveVersion(version, logger);
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alcops-'));
-        nupkgPath = await downloadPackage(resolved, tmpDir, logger);
-        tl.setVariable('alcopsVersion', resolved);
+        nupkgPath = await downloadPackage(resolved.version, tmpDir, logger, resolved.packageContentUrl);
+        tl.setVariable('alcopsVersion', resolved.version);
     }
 
     // 4. Extract

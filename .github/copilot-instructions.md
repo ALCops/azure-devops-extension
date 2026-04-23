@@ -45,6 +45,28 @@ npm run package:dev # Bundle + tfx → dev .vsix in ./out/
 - `tests/fixtures/` — Real minimal .NET assemblies for PE parsing tests
 - `scripts/` — CI/CD scripts (version stamping)
 
+### NuGet API Architecture
+
+The install-analyzers task interacts with NuGet via two APIs:
+
+1. **V3 Registration API** (`registration5-gz-semver2` hive) for version queries
+   - Responses are gzip-compressed (handled by `shared/http-client.ts`)
+   - Returns version metadata including `listed` status and `packageContent` download URLs
+   - Pagination: pages with < 128 versions have inlined items; >= 128 versions use external page references fetched in parallel
+   - Module: `shared/nuget-registration.ts`
+
+2. **V3 Flat Container** for package downloads
+   - Direct download from `api.nuget.org` CDN (tracked for NuGet.org download statistics)
+   - Both package ID and version must be lowercased in URLs
+   - Module: `tasks/install-analyzers/src/nuget-api.ts`
+
+Key design decisions:
+- `parseRegistrationIndex()` is a pure function (no I/O) for easy testing
+- `queryNuGetRegistration()` is a shared module usable by any task needing NuGet version info
+- `User-Agent: ALCops-AzureDevOps` is set on all HTTP requests for NuGet.org statistics tracking
+- Unlisted versions are filtered out during version resolution
+- `resolveVersion()` returns a `ResolvedVersion` with both the version string and the `packageContentUrl` from the Registration API (avoids redundant URL construction)
+
 ### Entry point pattern
 
 Every task follows the same pattern:
@@ -136,7 +158,6 @@ TypeScript and vitest both use the `@shared/*` alias for imports from `shared/`:
 - **Output variables need `isOutput: true`**: the 4th argument to `tl.setVariable()` must be `true` for downstream tasks to read the value
 - **Don't commit `tasks/*/dist/`**: these are gitignored build artifacts
 - **PE fixtures are real binaries**: `tests/fixtures/` contains .NET assemblies with embedded TFM and version attributes. Don't manually edit them.
-- **PE fixtures are real binaries**: `tests/fixtures/` contains .NET assemblies. Don't manually edit them.
 
 ## Documentation
 
