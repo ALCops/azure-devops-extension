@@ -29,14 +29,14 @@
     "@types/node": "^25.x",
     "@types/semver": "^7.7.1",
     "esbuild": "^0.28.0",
-    "eslint": "^10.2.0",
+    "eslint": "^10.2.1",
     "tfx-cli": "^0.23.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.4"
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^5.2.8",
+    "azure-pipelines-task-lib": "^5.2.10",
     "fflate": "^0.8.2",
     "semver": "^7.7.4"
   },
