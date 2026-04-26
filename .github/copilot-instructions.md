@@ -63,7 +63,7 @@ The install-analyzers task interacts with NuGet via two APIs:
 Key design decisions:
 - `parseRegistrationIndex()` is a pure function (no I/O) for easy testing
 - `queryNuGetRegistration()` is a shared module usable by any task needing NuGet version info
-- `User-Agent: ALCops-AzureDevOps` is set on all HTTP requests for NuGet.org statistics tracking
+- `User-Agent: vsts-task-installer/{version}` is set on NuGet HTTP requests, matching a known client pattern in NuGet.org's CDN log parser for download statistics visibility
 - Unlisted versions are filtered out during version resolution
 - `resolveVersion()` returns a `ResolvedVersion` with both the version string and the `packageContentUrl` from the Registration API (avoids redundant URL construction)
 
