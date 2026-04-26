@@ -222,7 +222,7 @@ describe('downloadPackage', () => {
         try {
             await downloadPackage('1.0.0', tmpDir);
             const calledOpts = mockRequest.mock.calls[0][1] as { headers?: Record<string, string> };
-            expect(calledOpts.headers?.['User-Agent']).toBe('ALCops-AzureDevOps');
+            expect(calledOpts.headers?.['User-Agent']).toMatch(/^vsts-task-installer\/\d+\.\d+\.\d+ \(Node\.js v/);
         } finally {
             fs.rmSync(tmpDir, { recursive: true, force: true });
         }

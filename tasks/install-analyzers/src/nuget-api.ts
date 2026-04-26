@@ -5,9 +5,12 @@ import { NUGET_PACKAGE_NAME, NUGET_FLAT_CONTAINER, RegistrationVersion } from '.
 import { Logger, nullLogger } from '../../../shared/logger';
 import { queryNuGetRegistration } from '../../../shared/nuget-registration';
 import { httpsGetBuffer } from '../../../shared/http-client';
+import { getUserAgent } from '../../../shared/user-agent';
+import taskJson from '../task.json';
 
 const packageId = NUGET_PACKAGE_NAME.toLowerCase();
-const USER_AGENT = 'ALCops-AzureDevOps';
+const { Major, Minor, Patch } = taskJson.version;
+const USER_AGENT = getUserAgent(`${Major}.${Minor}.${Patch}`);
 
 export interface ResolvedVersion {
     version: string;
