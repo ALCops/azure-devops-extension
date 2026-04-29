@@ -1,24 +1,12 @@
 # ALCops for Azure DevOps
 
-Azure DevOps pipeline tasks for downloading [ALCops](https://alcops.dev) code analyzers for AL (Business Central). The extension provides automatic target framework (TFM) detection from multiple sources and downloads the correct analyzer DLLs.
-
-## Tasks
-
-| Task | Description |
-|------|-------------|
-| **ALCopsDownload** | Download ALCops analyzers with automatic TFM detection (recommended) |
-| **ALCopsInstallAnalyzers** | *(Deprecated)* Use ALCopsDownload instead |
-| **ALCopsDetectTfmFromBCArtifact** | *(Deprecated)* Use ALCopsDownload with `detectUsing` instead |
-| **ALCopsDetectTfmFromNuGetDevTools** | *(Deprecated)* Use ALCopsDownload with `detectUsing` instead |
-| **ALCopsDetectTfmFromMarketplace** | *(Deprecated)* Use ALCopsDownload with `detectUsing` instead |
+Azure DevOps pipeline task for downloading [ALCops](https://alcops.dev) code analyzers for AL (Business Central) with automatic target framework (TFM) detection.
 
 ## Quick Start
 
-The simplest usage, specify the TFM manually:
-
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     inputs:
       tfm: "net8.0"
 ```
@@ -31,7 +19,7 @@ Pass a BC artifact URL and the TFM is detected automatically:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "$(bcArtifactUrl)"
@@ -41,7 +29,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "latest"
@@ -53,7 +41,7 @@ Force a specific detection source with `detectFrom`:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "current"
@@ -64,7 +52,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "$(Agent.ToolsDirectory)/bc-devtools/bin"
@@ -75,7 +63,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       tfm: "net8.0"
@@ -86,7 +74,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "latest"
@@ -100,9 +88,9 @@ steps:
 
 ## Task Reference
 
-### ALCopsDownload
+### ALCopsDownloadAnalyzers
 
-Download ALCops code analyzers with automatic TFM detection. This is the recommended task, replacing the previous two-step detect + install workflow.
+Download ALCops code analyzers with automatic TFM detection.
 
 #### Inputs
 
@@ -125,86 +113,6 @@ Download ALCops code analyzers with automatic TFM detection. This is the recomme
 | `outputDir` | Full path to extracted analyzer DLLs directory |
 | `files` | Semicolon-separated list of analyzer DLL paths |
 
----
-
-### Deprecated Tasks
-
-The following tasks are deprecated. Use `ALCopsDownload@1` instead.
-
-#### ALCopsInstallAnalyzers (Deprecated)
-
-Download and install ALCops code analyzers. Replaced by `ALCopsDownload@1`.
-
-<details>
-<summary>Inputs/Outputs</summary>
-
-**Inputs:** `version`, `packageSource`, `localPackagePath`, `tfm`, `compilerPath`, `outputPath`
-
-**Outputs:** `alcopsVersion`, `tfm`, `analyzerPath`, `analyzers`
-</details>
-
-#### ALCopsDetectTfmFromBCArtifact (Deprecated)
-
-Detect TFM from a BC artifact URL. Replaced by `ALCopsDownload@1` with `detectUsing` set to the artifact URL.
-
-<details>
-<summary>Inputs/Outputs</summary>
-
-**Inputs:** `artifactUrl`
-
-**Outputs:** `tfm`, `dotNetVersion`
-</details>
-
-#### ALCopsDetectTfmFromNuGetDevTools (Deprecated)
-
-Detect TFM from the BC DevTools NuGet package. Replaced by `ALCopsDownload@1` with `detectUsing`.
-
-<details>
-<summary>Inputs/Outputs</summary>
-
-**Inputs:** `version`
-
-**Outputs:** `tfm`, `devToolsVersion`
-</details>
-
-#### ALCopsDetectTfmFromMarketplace (Deprecated)
-
-Detect TFM from the AL Language VS Code extension. Replaced by `ALCopsDownload@1` with `detectUsing` and `detectFrom: marketplace`.
-
-<details>
-<summary>Inputs/Outputs</summary>
-
-**Inputs:** `channel`, `extensionVersion`
-
-**Outputs:** `tfm`, `extensionVersion`, `assemblyVersion`
-</details>
-
-## Migration Guide
-
-Replace the two-step detect + install pattern with a single `ALCopsDownload@1` step:
-
-**Before (deprecated):**
-```yaml
-steps:
-  - task: ALCopsDetectTfmFromBCArtifact@1
-    name: detectTfm
-    inputs:
-      artifactUrl: "$(bcArtifactUrl)"
-
-  - task: ALCopsInstallAnalyzers@1
-    inputs:
-      tfm: "$(detectTfm.tfm)"
-```
-
-**After:**
-```yaml
-steps:
-  - task: ALCopsDownload@1
-    name: alcops
-    inputs:
-      detectUsing: "$(bcArtifactUrl)"
-```
-
 ## Development
 
 ### Prerequisites
@@ -226,11 +134,11 @@ npm run package            # Bundle + create .vsix extension package
 
 ## Architecture
 
-The extension contains **5 tasks**, each with its own entry point under `tasks/`:
+The extension contains **5 tasks** under `tasks/`. Only `ALCopsDownloadAnalyzers` is actively maintained; the legacy tasks remain for backward compatibility.
 
 ```
 tasks/
-  download/                   # ALCopsDownload — single-step detect + download (recommended)
+  download/                   # ALCopsDownloadAnalyzers — single-step detect + download
   install-analyzers/          # ALCopsInstallAnalyzers — deprecated
   detect-tfm-bc-artifact/     # ALCopsDetectTfmFromBCArtifact — deprecated
   detect-tfm-nuget-devtools/  # ALCopsDetectTfmFromNuGetDevTools — deprecated

@@ -41,7 +41,7 @@ beforeEach(() => {
     mockGetVariable.mockReturnValue('/build/src');
 });
 
-describe('ALCopsDownload task-runner', () => {
+describe('ALCopsDownloadAnalyzers task-runner', () => {
     it('calls executeDownload with detectUsing input', async () => {
         mockGetInput.mockImplementation((name: string) => {
             if (name === 'detectUsing') return 'https://bcartifacts.example.com/onprem/26.0';

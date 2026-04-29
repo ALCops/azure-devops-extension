@@ -12,7 +12,7 @@ Download [ALCops](https://alcops.dev) code analyzers for AL (Business Central) i
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "latest"
@@ -28,7 +28,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "$(bcArtifactUrl)"
@@ -38,7 +38,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "latest"
@@ -48,7 +48,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
       detectUsing: "current"
@@ -59,7 +59,7 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDownload@1
+  - task: ALCopsDownloadAnalyzers@1
     inputs:
       tfm: "net8.0"
 ```
