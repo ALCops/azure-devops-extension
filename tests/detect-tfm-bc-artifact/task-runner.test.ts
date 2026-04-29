@@ -10,12 +10,16 @@ vi.mock('azure-pipelines-task-lib/task', () => ({
     TaskResult: { Succeeded: 0, Failed: 2 },
 }));
 
-vi.mock('../../tasks/detect-tfm-bc-artifact/src/bc-artifact', () => ({
-    detectFromBCArtifact: vi.fn(),
-}));
+vi.mock('@alcops/core', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@alcops/core')>();
+    return {
+        ...actual,
+        detectFromBCArtifact: vi.fn(),
+    };
+});
 
 import * as tl from 'azure-pipelines-task-lib/task';
-import { detectFromBCArtifact } from '../../tasks/detect-tfm-bc-artifact/src/bc-artifact';
+import { detectFromBCArtifact } from '@alcops/core';
 import { run } from '../../tasks/detect-tfm-bc-artifact/src/task-runner';
 
 const mockGetInput = vi.mocked(tl.getInput);

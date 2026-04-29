@@ -2,13 +2,17 @@ import * as tl from 'azure-pipelines-task-lib/task';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { TargetFramework } from '../../../shared/types';
+import {
+    TargetFramework, getUserAgent,
+    resolveVersion, downloadPackage, extractAnalyzers,
+    detectFromCompilerPath,
+} from '@alcops/core';
 import { createTaskLogger } from '../../../shared/logger';
 import { logTaskInputs } from '../../../shared/log-inputs';
-import { resolveVersion, downloadPackage } from './nuget-api';
-import { extractAnalyzers } from './nuget-extractor';
-import { detectFromCompilerPath } from './compiler-path';
 import taskJson from '../task.json';
+
+const { Major, Minor, Patch } = taskJson.version;
+const USER_AGENT = getUserAgent('vsts-task-installer', `${Major}.${Minor}.${Patch}`);
 
 export async function run(): Promise<void> {
     // 1. Read inputs
@@ -43,9 +47,9 @@ export async function run(): Promise<void> {
         logger.info(`Using local package: ${localPackagePath}`);
         nupkgPath = localPackagePath;
     } else {
-        const resolved = await resolveVersion(version, logger);
+        const resolved = await resolveVersion(version, logger, USER_AGENT);
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alcops-'));
-        nupkgPath = await downloadPackage(resolved.version, tmpDir, logger, resolved.packageContentUrl);
+        nupkgPath = await downloadPackage(resolved.version, tmpDir, logger, resolved.packageContentUrl, USER_AGENT);
         tl.setVariable('alcopsVersion', resolved.version);
     }
 
