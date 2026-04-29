@@ -27,7 +27,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.x",
-    "@types/semver": "^7.7.1",
     "esbuild": "^0.28.0",
     "eslint": "^10.2.1",
     "tfx-cli": "^0.23.1",
@@ -36,9 +35,8 @@
     "vitest": "^4.1.5"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^5.2.10",
-    "fflate": "^0.8.2",
-    "semver": "^7.7.4"
+    "@alcops/core": "^0.1.1",
+    "azure-pipelines-task-lib": "^5.2.10"
   },
   "engines": {
     "node": ">=20"

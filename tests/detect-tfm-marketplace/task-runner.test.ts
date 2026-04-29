@@ -10,12 +10,16 @@ vi.mock('azure-pipelines-task-lib/task', () => ({
     TaskResult: { Succeeded: 0, Failed: 2 },
 }));
 
-vi.mock('../../tasks/detect-tfm-marketplace/src/marketplace', () => ({
-    detectFromMarketplace: vi.fn(),
-}));
+vi.mock('@alcops/core', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@alcops/core')>();
+    return {
+        ...actual,
+        detectFromMarketplace: vi.fn(),
+    };
+});
 
 import * as tl from 'azure-pipelines-task-lib/task';
-import { detectFromMarketplace } from '../../tasks/detect-tfm-marketplace/src/marketplace';
+import { detectFromMarketplace } from '@alcops/core';
 import { run } from '../../tasks/detect-tfm-marketplace/src/task-runner';
 
 const mockGetInput = vi.mocked(tl.getInput);

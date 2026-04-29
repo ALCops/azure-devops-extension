@@ -1,5 +1,5 @@
 import * as tl from 'azure-pipelines-task-lib/task';
-import { detectFromBCArtifact } from './bc-artifact';
+import { detectFromBCArtifact } from '@alcops/core';
 import { createTaskLogger } from '../../../shared/logger';
 import { logTaskInputs } from '../../../shared/log-inputs';
 import taskJson from '../task.json';

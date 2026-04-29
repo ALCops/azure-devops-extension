@@ -11,13 +11,17 @@ vi.mock('azure-pipelines-task-lib/task', () => ({
     TaskResult: { Succeeded: 0, Failed: 2 },
 }));
 
-// Mock the nuget-devtools module
-vi.mock('../../tasks/detect-tfm-nuget-devtools/src/nuget-devtools', () => ({
-    detectFromNuGetDevTools: vi.fn(),
-}));
+// Mock the @alcops/core module
+vi.mock('@alcops/core', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@alcops/core')>();
+    return {
+        ...actual,
+        detectFromNuGetDevTools: vi.fn(),
+    };
+});
 
 import * as tl from 'azure-pipelines-task-lib/task';
-import { detectFromNuGetDevTools } from '../../tasks/detect-tfm-nuget-devtools/src/nuget-devtools';
+import { detectFromNuGetDevTools } from '@alcops/core';
 import { run } from '../../tasks/detect-tfm-nuget-devtools/src/task-runner';
 
 describe('task-runner', () => {
