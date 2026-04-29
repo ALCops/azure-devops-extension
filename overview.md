@@ -1,30 +1,25 @@
 # ALCops for Azure DevOps
 
-Install [ALCops](https://alcops.dev) code analyzers for AL (Business Central) in your Azure DevOps pipelines with automatic target framework detection.
+Download [ALCops](https://alcops.dev) code analyzers for AL (Business Central) in your Azure DevOps pipelines with automatic target framework detection.
 
 ## Features
 
-- **4 pipeline tasks** — Install analyzers and detect the correct TFM from multiple sources
-- **Automatic TFM detection** — Determine `net8.0` vs `netstandard2.1` from BC artifacts, NuGet DevTools, or the VS Marketplace
-- **NuGet integration** — Download the latest (or specific) version of ALCops from nuget.org
-- **Air-gapped support** — Use a local `.nupkg` file for restricted environments
-
-## Tasks
-
-| Task | Description |
-|------|-------------|
-| **ALCopsInstallAnalyzers** | Download and install ALCops analyzer DLLs |
-| **ALCopsDetectTfmFromBCArtifact** | Detect TFM from a BC artifact URL |
-| **ALCopsDetectTfmFromNuGetDevTools** | Detect TFM from BC DevTools NuGet package |
-| **ALCopsDetectTfmFromMarketplace** | Detect TFM from the AL Language VS Code extension |
+- **Single-step download** with automatic TFM detection from multiple sources
+- **Smart routing** automatically determines the detection source from your input (URL, path, version, or channel keyword)
+- **NuGet integration** downloads the latest (or specific) version of ALCops from nuget.org
 
 ## Quick Start
 
 ```yaml
 steps:
-  - task: ALCopsInstallAnalyzers@0
+  - task: ALCopsDownload@1
+    name: alcops
     inputs:
-      tfm: "net8.0"
+      detectUsing: "latest"
+
+  - script: |
+      alc.exe /project:"$(Build.SourcesDirectory)" \
+        /analyzer:"$(alcops.files)"
 ```
 
 ## Common Patterns
@@ -33,46 +28,44 @@ steps:
 
 ```yaml
 steps:
-  - task: ALCopsDetectTfmFromBCArtifact@0
-    name: detectTfm
+  - task: ALCopsDownload@1
+    name: alcops
     inputs:
-      artifactUrl: "$(bcArtifactUrl)"
-
-  - task: ALCopsInstallAnalyzers@0
-    inputs:
-      tfm: "$(detectTfm.tfm)"
+      detectUsing: "$(bcArtifactUrl)"
 ```
 
 ### Auto-detect from NuGet DevTools
 
 ```yaml
 steps:
-  - task: ALCopsDetectTfmFromNuGetDevTools@0
-    name: detectTfm
+  - task: ALCopsDownload@1
+    name: alcops
     inputs:
-      version: "latest"
-
-  - task: ALCopsInstallAnalyzers@0
-    inputs:
-      tfm: "$(detectTfm.tfm)"
+      detectUsing: "latest"
 ```
 
 ### Auto-detect from VS Marketplace
 
 ```yaml
 steps:
-  - task: ALCopsDetectTfmFromMarketplace@0
-    name: detectTfm
+  - task: ALCopsDownload@1
+    name: alcops
     inputs:
-      channel: "current"
+      detectUsing: "current"
+      detectFrom: "marketplace"
+```
 
-  - task: ALCopsInstallAnalyzers@0
+### Explicit TFM
+
+```yaml
+steps:
+  - task: ALCopsDownload@1
     inputs:
-      tfm: "$(detectTfm.tfm)"
+      tfm: "net8.0"
 ```
 
 ## Links
 
-- [Full documentation on GitHub](https://github.com/ALCops/Analyzers/tree/main/azure-devops-extension)
+- [Full documentation on GitHub](https://github.com/ALCops/azure-devops-extension)
 - [ALCops Website](https://alcops.dev)
-- [Report Issues](https://github.com/ALCops/Analyzers/issues)
+- [Report Issues](https://github.com/ALCops/azure-devops-extension/issues)
