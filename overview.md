@@ -1,11 +1,11 @@
 # ALCops for Azure DevOps
 
-Download [ALCops](https://alcops.dev) code analyzers for AL (Business Central) in your Azure DevOps pipelines with automatic target framework detection.
+Azure DevOps pipeline task for downloading [ALCops](https://alcops.dev) code analyzers for AL Language of Microsoft Dynamics 365 Business Central.
 
 ## Features
 
 - **Single-step download** with automatic TFM detection from multiple sources
-- **Smart routing** automatically determines the detection source from your input (URL, path, version, or channel keyword)
+- **Smart routing** determines the detection source from your input (URL, path, version, or channel keyword)
 - **NuGet integration** downloads the latest (or specific) version of ALCops from nuget.org
 
 ## Quick Start
@@ -13,55 +13,35 @@ Download [ALCops](https://alcops.dev) code analyzers for AL (Business Central) i
 ```yaml
 steps:
   - task: ALCopsDownloadAnalyzers@1
-    name: alcops
+    displayName: ALCops - Download Analyzers
     inputs:
-      detectUsing: "latest"
-
-  - script: |
-      alc.exe /project:"$(Build.SourcesDirectory)" \
-        /analyzer:"$(alcops.files)"
+      tfm: "net8.0" # Or use the detectUsing parameter instead of static value
+      outputPath: "$(Build.SourcesDirectory)/.alcops"
 ```
 
-## Common Patterns
+## Usage Examples
 
-### Auto-detect from BC Artifact
+### Auto-detect from BC Artifact URL
+
+Pass a BC artifact URL and the TFM is detected automatically:
 
 ```yaml
 steps:
   - task: ALCopsDownloadAnalyzers@1
-    name: alcops
+    displayName: ALCops - Download Analyzers
     inputs:
       detectUsing: "$(bcArtifactUrl)"
 ```
 
-### Auto-detect from NuGet DevTools
+### Auto-detect from NuGet DevTools version
 
 ```yaml
 steps:
   - task: ALCopsDownloadAnalyzers@1
     name: alcops
     inputs:
-      detectUsing: "latest"
-```
-
-### Auto-detect from VS Marketplace
-
-```yaml
-steps:
-  - task: ALCopsDownloadAnalyzers@1
-    name: alcops
-    inputs:
-      detectUsing: "current"
-      detectFrom: "marketplace"
-```
-
-### Explicit TFM
-
-```yaml
-steps:
-  - task: ALCopsDownloadAnalyzers@1
-    inputs:
-      tfm: "net8.0"
+      detectUsing: "latest" # Latest or preview for beta/prelease releases
+      detectFrom: "nuget-devtools" # Optional: Defaults to BC DevTools from NuGet, set to 'marketplace' for AL Language extension from VS Code Marketplace
 ```
 
 ## Links
