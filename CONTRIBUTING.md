@@ -71,7 +71,7 @@ npx vitest --watch                        # Watch mode
 
 ### Adding a New Task
 
-1. Create `tasks/<task-name>/task.json` with a unique GUID, Node24_1 + Node20_1 handlers
+1. Create `tasks/<task-name>/task.json` with a unique GUID, Node24_1 + Node20_1 + Node20 handlers
 2. Create `tasks/<task-name>/src/index.ts` (entry point) and `src/task-runner.ts` (orchestrator)
 3. Add task to `esbuild.config.mjs` `tasks` array
 4. Add task to `vss-extension.json` `files` and `contributions` arrays
@@ -219,5 +219,5 @@ Before submitting a PR:
 - [ ] `.vsix` packages (`npm run package`)
 - [ ] New code has tests (TDD — write tests first)
 - [ ] Shared module changes tested across all affected tasks
-- [ ] `task.json` has both `Node24_1` and `Node20_1` execution handlers
+- [ ] `task.json` has `Node24_1`, `Node20_1`, and `Node20` execution handlers
 - [ ] No secrets or credentials in source code

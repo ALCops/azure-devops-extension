@@ -78,7 +78,7 @@ Every task follows the same pattern:
 ### task.json
 
 Each task has a `task.json` defining its Azure DevOps contract:
-- Must include both `Node24_1` (primary) and `Node20_1` (fallback) in `execution`
+- Must include both `Node24_1` (primary), `Node20_1`, and `Node20` (fallback) in `execution`
 - Task `id` is a stable GUID (never changes)
 - Task `Major` version only bumps for breaking YAML contract changes
 - `Minor` and `Patch` are stamped by CI via inline `jq` in the workflow YAML
@@ -131,7 +131,7 @@ vi.mock('../../shared/http-range');
 
 ## Adding a New Task
 
-1. Create `tasks/<task-name>/task.json` — unique GUID, Node24_1 + Node20_1 handlers
+1. Create `tasks/<task-name>/task.json` — unique GUID, Node24_1 + Node20_1 + Node20 handlers
 2. Create `tasks/<task-name>/src/index.ts` and `src/task-runner.ts`
 3. Add the task name to the `tasks` array in `esbuild.config.mjs`
 4. Add entries in `vss-extension.json` `files` and `contributions` arrays (and `vss-extension.dev.json`)
@@ -153,7 +153,7 @@ TypeScript and vitest both use the `@shared/*` alias for imports from `shared/`:
 
 ## Common Pitfalls
 
-- **Missing Node handler**: every `task.json` needs both `Node24_1` and `Node20_1` execution entries
+- **Missing Node handler**: every `task.json` needs `Node24_1`, `Node20_1`, and `Node20` execution entries
 - **Shared modules aren't runtime-shared**: they're bundled into each task by esbuild. No `node_modules` sharing at runtime.
 - **Output variables need `isOutput: true`**: the 4th argument to `tl.setVariable()` must be `true` for downstream tasks to read the value
 - **Don't commit `tasks/*/dist/`**: these are gitignored build artifacts
