@@ -15,7 +15,7 @@ const sharedOptions = {
     bundle: true,
     format: 'cjs',
     platform: 'node',
-    target: 'node24',
+    target: 'node20',
     sourcemap: !isProduction,
     minify: isProduction,
     logLevel: 'info',
