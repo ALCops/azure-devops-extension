@@ -1,3 +1,6 @@
 import { run } from './task-runner';
 
-run();
+run().catch((err) => {
+    console.error('Unhandled error:', err);
+    process.exit(1);
+});

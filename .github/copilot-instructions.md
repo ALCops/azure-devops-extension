@@ -2,7 +2,9 @@
 
 ## Project Identity
 
-Azure DevOps extension providing 4 pipeline tasks for downloading and installing [ALCops](https://alcops.dev) code analyzers for AL (Business Central). The core problem: matching the correct analyzer DLLs to the consumer's AL compiler version via Target Framework Moniker (TFM) detection.
+Azure DevOps extension providing pipeline tasks for downloading ALCops [ALCops](https://alcops.dev) code analyzers for AL (Business Central). The core problem: matching the correct analyzer DLLs to the consumer's AL compiler version via Target Framework Moniker (TFM) detection.
+
+**One active task** (`ALCopsDownloadAnalyzers`) plus four deprecated legacy tasks retained for backward compatibility. All analyzer/TFM/NuGet logic lives in the external **`@alcops/core`** npm package; the tasks in this repo are thin wrappers that read inputs, call core, and set outputs.
 
 ## Tech Stack
 
@@ -10,8 +12,9 @@ Azure DevOps extension providing 4 pipeline tasks for downloading and installing
 - **Bundler**: esbuild — each task bundles to a single CJS file targeting Node 24
 - **Test runner**: vitest with built-in mocking (`vi.mock`, `vi.mocked`)
 - **Task SDK**: `azure-pipelines-task-lib` v5 (inputs, outputs, logging)
+- **Core logic**: `@alcops/core` npm package (TFM detection, NuGet download, ZIP/PE parsing) — bundled into each task by esbuild
 - **Runtime**: Node 24 primary + Node 20 fallback execution handlers
-- **Packaging**: `tfx-cli` produces a single `.vsix` containing all 4 tasks
+- **Packaging**: `tfx-cli` produces a single `.vsix` containing all tasks
 
 ## Commands
 
@@ -19,7 +22,7 @@ Azure DevOps extension providing 4 pipeline tasks for downloading and installing
 npm ci              # Install dependencies (use ci, not install)
 npm test            # Run all tests (vitest)
 npm run build       # TypeScript compilation check (tsc)
-npm run bundle      # esbuild → 4 task bundles in tasks/*/dist/
+npm run bundle      # esbuild → task bundles in tasks/*/dist/
 npm run lint        # ESLint on shared/ and tasks/*/src/
 npm run package     # Bundle + tfx → production .vsix in ./out/
 npm run package:dev # Bundle + tfx → dev .vsix in ./out/
@@ -27,51 +30,39 @@ npm run package:dev # Bundle + tfx → dev .vsix in ./out/
 
 ## Architecture
 
-4 independent tasks in a single `.vsix`:
+Tasks bundled into a single `.vsix`. Only `ALCopsDownloadAnalyzers` is actively maintained; the rest are deprecated (`"deprecated": true` in their `task.json`) and retained for backward compatibility:
 
-| Task | Directory | Purpose |
-|------|-----------|---------|
-| ALCopsInstallAnalyzers | `tasks/install-analyzers/` | Downloads ALCops from NuGet, extracts correct DLLs |
-| ALCopsDetectTfmFromBCArtifact | `tasks/detect-tfm-bc-artifact/` | Detects TFM from BC artifact URL (3-step waterfall) |
-| ALCopsDetectTfmFromNuGetDevTools | `tasks/detect-tfm-nuget-devtools/` | Detects TFM from NuGet DevTools package version |
-| ALCopsDetectTfmFromMarketplace | `tasks/detect-tfm-marketplace/` | Detects TFM from VS Marketplace AL Language extension |
+| Task | Directory | Status | Purpose |
+|------|-----------|--------|---------|
+| ALCopsDownloadAnalyzers | `tasks/download/` | **Active** | Single-step: detect TFM + download/extract analyzers via `executeDownload()` |
+| ALCopsInstallAnalyzers | `tasks/install-analyzers/` | Deprecated | Downloads ALCops from NuGet, extracts correct DLLs |
+| ALCopsDetectTfmFromBCArtifact | `tasks/detect-tfm-bc-artifact/` | Deprecated | Detects TFM from BC artifact URL |
+| ALCopsDetectTfmFromNuGetDevTools | `tasks/detect-tfm-nuget-devtools/` | Deprecated | Detects TFM from NuGet DevTools package version |
+| ALCopsDetectTfmFromMarketplace | `tasks/detect-tfm-marketplace/` | Deprecated | Detects TFM from VS Marketplace AL Language extension |
 
 ### Key directories
 
-- `shared/` — Shared TypeScript modules bundled into each task (not runtime-shared)
-- `tasks/<name>/src/` — Task source code (entry point + task-runner + logic modules)
+- `shared/` — Small shared wrapper helpers bundled into each task (currently `logger.ts` + `log-inputs.ts`). Not runtime-shared; esbuild inlines them.
+- `tasks/<name>/src/` — Thin task wrappers: `index.ts` (entry) + `task-runner.ts` (reads inputs, calls `@alcops/core`, sets outputs)
 - `tasks/<name>/dist/` — esbuild output (gitignored, generated)
 - `tests/` — All tests, mirroring the task structure
-- `tests/fixtures/` — Real minimal .NET assemblies for PE parsing tests
-- `scripts/` — CI/CD scripts (version stamping)
+- `tests/fixtures/` — Real minimal .NET compiler assemblies (`compiler-net80`, `compiler-netstandard21`) referenced by scaffold checks
 
-### NuGet API Architecture
+### Core logic (`@alcops/core`)
 
-The install-analyzers task interacts with NuGet via two APIs:
+All analyzer/TFM/NuGet/ZIP/PE logic lives in the external `@alcops/core` package (separate `npm-package` repo), **not** in this repo. The `download` task calls a single entry point:
 
-1. **V3 Registration API** (`registration5-gz-semver2` hive) for version queries
-   - Responses are gzip-compressed (handled by `shared/http-client.ts`)
-   - Returns version metadata including `listed` status and `packageContent` download URLs
-   - Pagination: pages with < 128 versions have inlined items; >= 128 versions use external page references fetched in parallel
-   - Module: `shared/nuget-registration.ts`
+- `executeDownload(options, logger)` — full pipeline: detect TFM → resolve ALCops version → download from NuGet → extract → cleanup. Returns `{ version, tfm, outputDir, files }`.
+- `options: DownloadOptions` — `{ detectSource?, detectFrom?, tfm?, version?, outputDir }`
+- `detectFrom: DetectSource` — `'bc-artifact' | 'compiler-path' | 'nuget-devtools' | 'marketplace'`
 
-2. **V3 Flat Container** for package downloads
-   - Direct download from `api.nuget.org` CDN (tracked for NuGet.org download statistics)
-   - Both package ID and version must be lowercased in URLs
-   - Module: `tasks/install-analyzers/src/nuget-api.ts`
-
-Key design decisions:
-- `parseRegistrationIndex()` is a pure function (no I/O) for easy testing
-- `queryNuGetRegistration()` is a shared module usable by any task needing NuGet version info
-- `User-Agent: vsts-task-installer/{version}` is set on NuGet HTTP requests, matching a known client pattern in NuGet.org's CDN log parser for download statistics visibility
-- Unlisted versions are filtered out during version resolution
-- `resolveVersion()` returns a `ResolvedVersion` with both the version string and the `packageContentUrl` from the Registration API (avoids redundant URL construction)
+When debugging download behaviour, the bug is almost certainly in `@alcops/core`, not in this repo's wrapper. Treat the core package as the source of truth for valid TFMs, version resolution, and NuGet interaction.
 
 ### Entry point pattern
 
 Every task follows the same pattern:
-1. `index.ts` — imports and calls `run()` from `task-runner.ts`
-2. `task-runner.ts` — orchestrator: reads inputs via `tl.getInput()`, executes logic, sets outputs via `tl.setVariable()`
+1. `index.ts` — imports and calls `run()` from `task-runner.ts`; guards with `.catch(...)` so unexpected rejections fail the process (and the ADO task) rather than exiting 0
+2. `task-runner.ts` — orchestrator: reads inputs via `tl.getInput()`, calls `@alcops/core`, sets outputs via `tl.setVariable()`, and wraps logic in try/catch → `tl.setResult(Failed)` on error
 
 ## ADO Extension Patterns
 
@@ -101,38 +92,39 @@ Each task has a `task.json` defining its Azure DevOps contract:
 ### Rules
 
 - **TDD**: write tests before implementation
-- **No real network calls**: mock all HTTP at module level via `vi.mock('https')`
+- **No real network calls**: tasks delegate to `@alcops/core`, so mock the core entry point (e.g. `executeDownload`) at module level — the wrapper tests never touch HTTP
 - **Module isolation**: each test file mocks its external dependencies
 - **Full suite for shared changes**: if you modify `shared/`, run `npm test` (all tests), not just one task's tests
 
 ### Mocking patterns
 
 ```typescript
-// HTTP
-vi.mock('https', () => ({ request: vi.fn() }));
-
 // Azure Pipelines task-lib
 vi.mock('azure-pipelines-task-lib/task', () => ({
   getInput: vi.fn(),
+  getPathInput: vi.fn(),
+  getVariable: vi.fn(),
   setVariable: vi.fn(),
   setResult: vi.fn(),
-  TaskResult: { Succeeded: 0, Failed: 2 },
+  debug: vi.fn(), warning: vi.fn(), error: vi.fn(),
+  TaskResult: { Succeeded: 0, Failed: 1 },
 }));
 
-// Shared modules (for task-level isolation)
-vi.mock('../../shared/vsix-tfm');
-vi.mock('../../shared/http-range');
+// @alcops/core — keep real exports, stub the entry point
+vi.mock('@alcops/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@alcops/core')>();
+  return { ...actual, executeDownload: vi.fn() };
+});
 ```
 
 ### Fixtures
 
-- ZIP fixtures: created in-memory via `fflate.zipSync()` (no external files)
-- PE/DLL fixtures: real minimal .NET assemblies in `tests/fixtures/` (3.5 KB each, generated via `dotnet build`)
+- `tests/fixtures/` holds real minimal .NET compiler assemblies (`compiler-net80`, `compiler-netstandard21`), referenced by scaffold existence checks. Don't manually edit these binaries.
 
 ## Adding a New Task
 
 1. Create `tasks/<task-name>/task.json` — unique GUID, Node24_1 + Node20_1 + Node20 handlers
-2. Create `tasks/<task-name>/src/index.ts` and `src/task-runner.ts`
+2. Create `tasks/<task-name>/src/index.ts` (calls `run()`, guards with `.catch`) and `src/task-runner.ts` (reads inputs → calls `@alcops/core` → sets outputs)
 3. Add the task name to the `tasks` array in `esbuild.config.mjs`
 4. Add entries in `vss-extension.json` `files` and `contributions` arrays (and `vss-extension.dev.json`)
 5. Create tests in `tests/<task-name>/`
@@ -154,10 +146,11 @@ TypeScript and vitest both use the `@shared/*` alias for imports from `shared/`:
 ## Common Pitfalls
 
 - **Missing Node handler**: every `task.json` needs `Node24_1`, `Node20_1`, and `Node20` execution entries
-- **Shared modules aren't runtime-shared**: they're bundled into each task by esbuild. No `node_modules` sharing at runtime.
+- **Shared modules aren't runtime-shared**: `shared/` helpers and `@alcops/core` are bundled into each task by esbuild. No `node_modules` sharing at runtime.
+- **Logic lives in `@alcops/core`, not here**: TFM detection, NuGet download, ZIP/PE parsing are all in the external package. Wrappers must stay thin — don't reimplement or duplicate core's validation (e.g. valid TFM lists) in the wrapper.
 - **Output variables need `isOutput: true`**: the 4th argument to `tl.setVariable()` must be `true` for downstream tasks to read the value
 - **Don't commit `tasks/*/dist/`**: these are gitignored build artifacts
-- **PE fixtures are real binaries**: `tests/fixtures/` contains .NET assemblies with embedded TFM and version attributes. Don't manually edit them.
+- **PE fixtures are real binaries**: `tests/fixtures/` contains .NET assemblies. Don't manually edit them.
 
 ## Documentation
 
