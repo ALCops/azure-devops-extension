@@ -56,6 +56,9 @@
         },
         "Node20_1": {
             "target": "dist/index.js"
-        }
-    }
+        },
+		"Node20": {
+			"target": "dist/index.js"
+		}
+	}
 }
