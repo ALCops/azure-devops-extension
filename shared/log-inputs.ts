@@ -12,6 +12,10 @@ const SENSITIVE_TYPES = ['secureString'];
 /**
  * Log all task input parameters as a column-aligned table.
  * Falls back to defaultValue from task.json when no explicit value is set.
+ *
+ * Note: masking only applies to inputs whose `type` is listed in SENSITIVE_TYPES
+ * (currently `secureString`). Plain `string` inputs are never masked, so any future
+ * secret-bearing input must be declared with a sensitive type to be redacted here.
  */
 export function logTaskInputs(logger: Logger, inputs: TaskInputDef[]): void {
     if (inputs.length === 0) return;
