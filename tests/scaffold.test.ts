@@ -53,9 +53,15 @@ describe('scaffold: task.json files', () => {
 			const taskJson = JSON.parse(fs.readFileSync(taskJsonPath, 'utf-8'));
 			expect(taskJson.id).toBeTruthy();
 			expect(taskJson.name).toBeTruthy();
-			expect(taskJson.execution).toHaveProperty('Node24_1');
+			expect(taskJson.execution).toHaveProperty('Node24');
 			expect(taskJson.execution).toHaveProperty('Node20_1');
 			expect(taskJson.execution).toHaveProperty('Node20');
+			// Guard against the invalid handler name reappearing (Node24_1 is not a
+			// recognized Azure Pipelines handler; the correct key is Node24).
+			expect(taskJson.execution).not.toHaveProperty('Node24_1');
+			// minimumAgentVersion gives old agents a clear error instead of the cryptic
+			// "supported task execution handler was not found" message.
+			expect(taskJson.minimumAgentVersion).toBe('3.224.1');
 		});
 
 		it(`should have src/index.ts for ${taskDir}`, () => {

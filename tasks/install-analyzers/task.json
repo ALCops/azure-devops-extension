@@ -13,6 +13,7 @@
         "Minor": 0,
         "Patch": 0
     },
+    "minimumAgentVersion": "3.224.1",
     "instanceNameFormat": "ALCops Install Analyzers $(version)",
     "inputs": [
         {
@@ -94,14 +95,15 @@
         }
     ],
     "execution": {
-        "Node24_1": {
+        "Node24": {
             "target": "dist/index.js"
         },
         "Node20_1": {
             "target": "dist/index.js"
         },
-		"Node20": {
-			"target": "dist/index.js"
-		}
-	}
+        "Node20": {
+            "target": "dist/index.js"
+        }
+    }
 }
+

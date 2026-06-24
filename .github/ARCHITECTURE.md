@@ -254,7 +254,7 @@ PR / Feature Branch          Push to main              Tag v*
 
 On the Azure DevOps agent:
 
-1. Agent picks the best available Node handler: `Node24_1` → `Node20_1` → `Node20` (fallback)
+1. Agent picks the best available Node handler: `Node24` → `Node20_1` → `Node20` (fallback)
 2. Agent runs `tasks/<task>/dist/index.js`
 3. `index.ts` calls `task-runner.ts` → `run()`
 4. Task-runner reads inputs via `tl.getInput()`, executes logic, sets outputs via `tl.setVariable()`
