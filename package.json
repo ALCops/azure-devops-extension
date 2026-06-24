@@ -27,16 +27,16 @@
   },
   "devDependencies": {
     "@types/node": "^25.x",
-    "esbuild": "^0.28.0",
-    "eslint": "^10.4.1",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
     "tfx-cli": "^0.23.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.1",
-    "vitest": "^4.1.8"
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
     "@alcops/core": "^0.1.2",
-    "azure-pipelines-task-lib": "^5.2.10"
+    "azure-pipelines-task-lib": "^5.2.11"
   },
   "engines": {
     "node": ">=20"
