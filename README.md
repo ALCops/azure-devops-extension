@@ -115,6 +115,34 @@ Download ALCops code analyzers with automatic TFM detection.
 | `outputDir` | Full path to extracted analyzer DLLs directory |
 | `files` | Semicolon-separated list of analyzer DLL paths |
 
+## Troubleshooting
+
+### "A supported task execution handler was not found ... not compatible with your current operating system"
+
+Despite mentioning the operating system, this Azure DevOps error is **not** about your OS.
+It means your build agent is **too old** to recognize any of the task's Node execution
+handlers. The tasks ship `Node24`, `Node20_1`, and `Node20` handlers and require an agent
+of at least **v3.224.1** (the release that introduced the Node 20 handler).
+
+Fix it with any of the following:
+
+- **Upgrade the agent.** For self-hosted agents, update to the latest 3.x or 4.x agent.
+  Microsoft-hosted agents are always current. Self-hosted agents auto-update within a
+  major version but **not** across majors (v2→v3, v3→v4 require a manual upgrade).
+- **Install a newer Node runner on the agent** by adding the
+  [`NodeTaskRunnerInstaller@0`](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/node-task-runner-installer-v0)
+  task before the ALCops task:
+
+  ```yaml
+  - task: NodeTaskRunnerInstaller@0
+    inputs:
+      runnerVersion: 20
+  ```
+
+- **On-premises Azure DevOps Server:** ensure the server (and its bundled agent) is recent
+  enough. Servers older than the agent v3.224.1 baseline cannot run these tasks; upgrade
+  the server or use the `NodeTaskRunnerInstaller@0` workaround above.
+
 ## Development
 
 ### Prerequisites
