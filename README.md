@@ -51,7 +51,7 @@ steps:
       detectFrom: "marketplace"
 ```
 
-> **Note:** Both VSIX layouts of the AL Language extension are supported from `@alcops/core` 0.2.1:
+> **Note:** Both VSIX layouts of the AL Language extension are supported from `@alcops/core` 0.2.0:
 > the flat `extension/bin/` layout used by AL 18+ (BC 29) and the legacy `extension/bin/Analyzers/` layout.
 > Compiling with AL 18 additionally requires a .NET 10 runtime on the agent, since its binaries are
 > framework-dependent `net10.0`. Installing that runtime is outside the scope of this task.

@@ -35,7 +35,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@alcops/core": "^0.1.2",
+    "@alcops/core": "^0.2.0",
     "azure-pipelines-task-lib": "^5.277.0"
   },
   "engines": {
