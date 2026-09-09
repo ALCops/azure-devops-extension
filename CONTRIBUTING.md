@@ -126,7 +126,7 @@ The [CI workflow](.github/workflows/ci.yml) runs on every PR touching `azure-dev
 Every push to `main` automatically publishes the **dev extension** (`alcops-ado-dev`):
 
 1. GitVersion calculates the next version (e.g., `0.1.3`)
-2. Inline `jq` in the workflow stamps all `task.json` version fields (Minor + Patch)
+2. Inline `jq` in the workflow stamps all `task.json` version fields (Major + Minor + Patch)
 3. `tfx extension publish` pushes to the Marketplace as a private extension
 4. The extension is shared with the configured Azure DevOps org
 

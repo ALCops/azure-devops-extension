@@ -44,6 +44,11 @@ steps:
       detectFrom: "nuget-devtools" # Optional: Defaults to BC DevTools from NuGet, set to 'marketplace' for AL Language extension from VS Code Marketplace
 ```
 
+> **Note:** With `detectFrom: marketplace`, both VSIX layouts of the AL Language extension are supported
+> from `@alcops/core` 0.2.1: the flat `extension/bin/` layout used by AL 18+ (BC 29) and the legacy
+> `extension/bin/Analyzers/` layout. Compiling with AL 18 additionally requires a .NET 10 runtime on the
+> agent, since its binaries are framework-dependent `net10.0`.
+
 ## Links
 
 - [Full documentation on GitHub](https://github.com/ALCops/azure-devops-extension)

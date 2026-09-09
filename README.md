@@ -51,6 +51,11 @@ steps:
       detectFrom: "marketplace"
 ```
 
+> **Note:** Both VSIX layouts of the AL Language extension are supported from `@alcops/core` 0.2.1:
+> the flat `extension/bin/` layout used by AL 18+ (BC 29) and the legacy `extension/bin/Analyzers/` layout.
+> Compiling with AL 18 additionally requires a .NET 10 runtime on the agent, since its binaries are
+> framework-dependent `net10.0`. Installing that runtime is outside the scope of this task.
+
 ### Auto-detect from Compiler Path
 
 ```yaml
@@ -101,7 +106,7 @@ Download ALCops code analyzers with automatic TFM detection.
 | `detectUsing` | — | Input for TFM detection: BC artifact URL, local compiler path, NuGet DevTools version/channel, or VS Marketplace version. Smart routing determines the source. |
 | `detectFrom` | *(auto)* | Force a detection source: `bc-artifact`, `marketplace`, `nuget-devtools`, `compiler-path` |
 | `tfm` | — | Explicit target framework: `net8.0`, `netstandard2.1`, `net10.0`. Skips detection. |
-| `version` | `latest` | ALCops version: `latest`, `preview`, or specific (e.g., `1.2.3`) |
+| `version` | `latest` | ALCops version: `latest`, `prerelease`, or specific (e.g., `1.2.3`) |
 | `outputPath` | `$(Build.SourcesDirectory)/.alcops` | Where to place extracted analyzer DLLs |
 
 > **Note:** Either `detectUsing` or `tfm` must be provided.
