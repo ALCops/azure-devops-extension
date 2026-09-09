@@ -19,6 +19,9 @@ steps:
       outputPath: "$(Build.SourcesDirectory)/.alcops"
 ```
 
+> **Note:** The `@1` is the task major version and is independent of the extension version shown above;
+> the `Version: 1.x.y` line in the pipeline log is the task's own version, not the extension's.
+
 ## Usage Examples
 
 ### Auto-detect from BC Artifact URL
@@ -43,6 +46,11 @@ steps:
       detectUsing: "latest" # Latest or preview for beta/prelease releases
       detectFrom: "nuget-devtools" # Optional: Defaults to BC DevTools from NuGet, set to 'marketplace' for AL Language extension from VS Code Marketplace
 ```
+
+> **Note:** With `detectFrom: marketplace`, both VSIX layouts of the AL Language extension are supported
+> from `@alcops/core` 0.2.0: the flat `extension/bin/` layout used by AL 18+ (BC 29) and the legacy
+> `extension/bin/Analyzers/` layout. Compiling with AL 18 additionally requires a .NET 10 runtime on the
+> agent, since its binaries are framework-dependent `net10.0`.
 
 ## Links
 

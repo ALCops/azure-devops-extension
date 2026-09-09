@@ -230,7 +230,13 @@ for f in tasks/*/task.json; do
 done
 ```
 
-GitVersion provides `minor` and `patch` as separate outputs. Task `Major` is preserved (only bumped for breaking YAML contract changes). Consumers reference tasks as `TaskName@1`.
+GitVersion provides `minor` and `patch` as separate outputs. Task `Major` is deliberately preserved: it
+is the `@N` consumers reference in YAML (`TaskName@1`), so raising it breaks every pipeline pinned to the
+old major. It is only bumped for breaking YAML contract changes, and then a copy of the previous major
+has to keep shipping alongside it.
+
+As a result the task version in the pipeline log header (`Version: 1.x.y`) is intentionally independent
+of the extension version on the Marketplace (`2.x.y`); only `Minor` and `Patch` track GitVersion.
 
 ### CI Pipeline Flow
 
