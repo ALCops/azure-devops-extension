@@ -19,6 +19,9 @@ steps:
       outputPath: "$(Build.SourcesDirectory)/.alcops"
 ```
 
+> **Note:** The `@1` is the task major version and is independent of the extension version shown above;
+> the `Version: 1.x.y` line in the pipeline log is the task's own version, not the extension's.
+
 ## Usage Examples
 
 ### Auto-detect from BC Artifact URL

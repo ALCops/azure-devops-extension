@@ -225,12 +225,18 @@ Task versions are stamped inline in the workflow YAML using `jq`:
 ```yaml
 for f in tasks/*/task.json; do
   jq --indent 4 \
-    '.version.Major = <major> | .version.Minor = <minor> | .version.Patch = <patch>' \
+    '.version.Minor = <minor> | .version.Patch = <patch>' \
     "$f" > tmp.$$ && mv tmp.$$ "$f"
 done
 ```
 
-GitVersion provides `major`, `minor` and `patch` as separate outputs, so the version shown in the task log header matches the extension version. Note that the task `Major` is the `@N` consumers reference in YAML (`TaskName@1`), so raising it is a breaking change for existing pipelines.
+GitVersion provides `minor` and `patch` as separate outputs. Task `Major` is deliberately preserved: it
+is the `@N` consumers reference in YAML (`TaskName@1`), so raising it breaks every pipeline pinned to the
+old major. It is only bumped for breaking YAML contract changes, and then a copy of the previous major
+has to keep shipping alongside it.
+
+As a result the task version in the pipeline log header (`Version: 1.x.y`) is intentionally independent
+of the extension version on the Marketplace (`2.x.y`); only `Minor` and `Patch` track GitVersion.
 
 ### CI Pipeline Flow
 

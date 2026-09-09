@@ -78,7 +78,7 @@ jobs:
         run: |
           for f in tasks/*/task.json; do
             jq --indent 4 \
-              '.version.Major = ${{ steps.gitversion.outputs.major }} | .version.Minor = ${{ steps.gitversion.outputs.minor }} | .version.Patch = ${{ github.run_number }}' \
+              '.version.Minor = ${{ steps.gitversion.outputs.minor }} | .version.Patch = ${{ github.run_number }}' \
               "$f" > tmp.$$ && mv tmp.$$ "$f"
           done
 

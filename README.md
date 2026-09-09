@@ -120,6 +120,15 @@ Download ALCops code analyzers with automatic TFM detection.
 | `outputDir` | Full path to extracted analyzer DLLs directory |
 | `files` | Semicolon-separated list of analyzer DLL paths |
 
+#### Versioning
+
+The `@1` in `ALCopsDownloadAnalyzers@1` is the **task** major version, and the pipeline log header
+shows the task's own version (`Version: 1.x.y`). That is intentionally independent of the extension
+version on the Marketplace (`2.x.y`): every release stamps the task `Minor` and `Patch`, while `Major`
+stays at `1` because it is the number your YAML pins. It only changes on a breaking task contract
+change, which would mean updating your pipelines to `@2`. So a `Version: 1.x.y` header on a 2.x
+extension is expected, not a mismatch.
+
 ## Troubleshooting
 
 ### "A supported task execution handler was not found ... not compatible with your current operating system"
