@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@alcops/core": "^0.2.0",
-    "azure-pipelines-task-lib": "^5.279.0"
+    "azure-pipelines-task-lib": "^5.280.1"
   },
   "engines": {
     "node": ">=20"
